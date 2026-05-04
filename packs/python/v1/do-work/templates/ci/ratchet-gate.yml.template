@@ -1,0 +1,126 @@
+# Ratchet Gate - GitHub Actions workflow template
+#
+# Copy this file to .github/workflows/ratchet-gate.yml at the repo root.
+# Runs on every pull_request and every push to main.
+# See do-work/templates/ci/README.md for install steps and tuning notes.
+#
+# Gates on parse_check, lint, test_coverage, doc_quality, and secrets.
+# Does NOT re-implement the full ratchet agent scoring - that is
+# agent-owned. This workflow blocks PRs on objective, deterministic
+# regressions that can be measured without LLM judgement.
+#
+# Human review stays required. This workflow does not enable auto-merge.
+#
+# Dependencies:
+#   - Python 3.12 (installed by actions/setup-python@v5)
+#   - uv (installed by astral-sh/setup-uv@v3)
+#   - gitleaks (installed by gitleaks/gitleaks-action@v2)
+
+name: ratchet-gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  build-and-test:
+    name: Lint, test, docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history so baselines.jsonl is accessible
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      # lint floor - ruff check must pass
+      - name: Ruff lint
+        run: uv run ruff check
+
+      # lint floor - ruff format drift gate
+      - name: Ruff format check
+        run: uv run ruff format --check
+
+      # parse_check + test_coverage regression gate - tests pass and coverage present
+      - name: Pytest with coverage
+        run: uv run pytest --cov=src --cov-report=term-missing
+
+      # doc_quality floor - interrogate docstring coverage
+      - name: Interrogate docstring coverage
+        run: uv run interrogate -v src/
+
+      # Optional type check. Remove this step if the project does not use pyright.
+      - name: Pyright
+        run: uv run pyright
+        continue-on-error: true
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE only required for organizations, not personal accounts
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  ratchet-baseline:
+    name: Ratchet baseline regression
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compare composite against PR base
+        run: |
+          set -e
+          # This job is a sanity check, not a full re-score.
+          # The ratchet agent writes baselines.jsonl on merge; this job
+          # refuses the PR if the latest baseline's composite is below
+          # the project's composite floor.
+          baseline_file="do-work/ratchet/baselines.jsonl"
+          if [ ! -s "$baseline_file" ]; then
+            echo "No ratchet baselines yet. Skipping regression gate."
+            exit 0
+          fi
+          latest=$(tail -1 "$baseline_file")
+          composite=$(echo "$latest" | python3 -c "import json,sys;print(json.load(sys.stdin)['composite'])")
+          # Project floor - edit per project expectations, default 0.75.
+          floor="${RATCHET_COMPOSITE_FLOOR:-0.75}"
+          if python3 -c "import sys;sys.exit(0 if $composite >= $floor else 1)"; then
+            echo "Latest baseline composite $composite >= floor $floor"
+          else
+            echo "::error::Latest baseline composite $composite is below floor $floor"
+            exit 1
+          fi

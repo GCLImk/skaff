@@ -1,0 +1,35 @@
+# Ratchet configuration for ISWG-OS.
+# Project overrides for ratchet-protocol.md defaults.
+# See .claude/conventions/ratchet-protocol.md for the full spec.
+
+# Dimension weights. parse_check is a gate, not a weight - its 1.0 entry here
+# is documentation only; a parse_check below 1.0 zeroes the composite.
+#
+# Rationale for ISWG-OS weighting:
+# - doc_quality is elevated to 1.5 because the project's three-surface model
+#   makes spec docs (docs/sheets, docs/appsheet) the handover artefact.
+#   Poor specs = broken operator handover = governance failure.
+# - test_coverage is reduced to 0.5 for v1. GAS test infra is immature and
+#   we accept lower coverage while the test harness is being established.
+#   Revise upward once GasT or equivalent is wired in.
+parse_check_weight     = 1.0
+lint_weight            = 1.0
+complexity_weight      = 1.0
+structure_weight       = 1.0
+dead_code_weight       = 0.5
+test_coverage_weight   = 0.5
+doc_quality_weight     = 1.5
+
+# Composite at or above this triggers an external validation pass.
+external_validation_after_composite = 0.85
+
+# Implicit non-regression thresholds. Drop below any of these and the ratchet
+# rejects regardless of composite direction.
+threshold_parse_check    = 1.00
+threshold_doc_quality    = 0.85
+threshold_test_coverage  = 0.30
+
+# N/A overrides. ISWG-OS starts with test_coverage N/A until a GAS test
+# harness (GasT or similar) is established. Remove from this list as soon
+# as the harness lands and coverage becomes measurable.
+na_dimensions = test_coverage

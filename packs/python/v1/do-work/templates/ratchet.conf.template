@@ -1,0 +1,39 @@
+# Ratchet configuration - project overrides for ratchet-protocol.md defaults.
+# Copy or symlink this file to `ratchet.conf` at the repo root to activate.
+# Remove or comment out any line to fall back to the protocol default.
+
+# Dimension weights. parse_check is a gate, not a weight - its 1.0 entry here
+# is documentation only; a parse_check below 1.0 zeroes the composite.
+#
+# Rationale for Python pack weighting:
+# - test_coverage is elevated to 1.5 because Python projects typically have
+#   strong test culture (pytest is mature, pytest-cov is trivial to wire in).
+#   Lean on the test floor before the doc floor.
+# - doc_quality stays at 1.0. Interrogate scores docstring presence, but not
+#   every helper warrants a docstring; the threshold below is tuned to 0.70
+#   to reflect that (lower than other packs that gate on stricter doc tools).
+# - All other dimensions retain protocol defaults. Ruff covers lint and a
+#   chunk of structure; complexity and dead_code remain agent-scored.
+parse_check_weight     = 1.0
+lint_weight            = 1.0
+complexity_weight      = 1.0
+structure_weight       = 1.0
+dead_code_weight       = 0.5
+test_coverage_weight   = 1.5
+doc_quality_weight     = 1.0
+
+# Composite at or above this triggers an external validation pass.
+external_validation_after_composite = 0.85
+
+# Implicit non-regression thresholds. Drop below any of these and the ratchet
+# rejects regardless of composite direction.
+threshold_parse_check    = 1.00
+threshold_doc_quality    = 0.70
+threshold_test_coverage  = 0.60
+
+# N/A overrides. List any dimension that should be treated as N/A on this
+# project. Useful on repos that lack a specific tool (e.g. no type checker).
+# Format: comma-separated dimension names, or empty for none.
+# Python projects can measure all dimensions from day one with the default
+# toolchain (ruff, pytest+coverage, interrogate, pyright/mypy).
+na_dimensions =

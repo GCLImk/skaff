@@ -1,0 +1,123 @@
+# Ratchet Gate - GitHub Actions workflow template
+#
+# Copy this file to .github/workflows/ratchet-gate.yml at the repo root.
+# Runs on every pull_request and every push to main.
+#
+# Gates on parse_check (tsc + build), lint, test_coverage, doc_quality, and
+# secrets. Does NOT re-implement the full ratchet agent scoring - that is
+# agent-owned. This workflow blocks PRs on objective, deterministic
+# regressions that can be measured without LLM judgement.
+#
+# Human review stays required. This workflow does not enable auto-merge.
+#
+# Dependencies:
+#   - Node 20 (installed by actions/setup-node@v4)
+#   - pnpm 9.x (installed by pnpm/action-setup@v4)
+#   - gitleaks (installed by gitleaks/gitleaks-action@v2)
+#   - python3 (pre-installed on ubuntu-latest)
+
+name: ratchet-gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  build-and-test:
+    name: Type check, lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history so baselines.jsonl is accessible
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # parse_check (part 1) - TypeScript compile must succeed
+      - name: Type check
+        run: pnpm tsc --noEmit
+
+      # lint floor - eslint + format must pass
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      # test_coverage regression gate - tests pass and coverage produced
+      - name: Test
+        run: pnpm test --run --coverage
+
+      # parse_check (part 2) - production build must succeed
+      - name: Build
+        run: pnpm build
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE only required for organizations, not personal accounts
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  ratchet-baseline:
+    name: Ratchet baseline regression
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare composite against PR base
+        run: |
+          set -e
+          # This job is a sanity check, not a full re-score.
+          # The ratchet agent writes baselines.jsonl on merge; this job
+          # refuses the PR if the latest baseline's composite is below
+          # the project's composite floor.
+          baseline_file="do-work/ratchet/baselines.jsonl"
+          if [ ! -s "$baseline_file" ]; then
+            echo "No ratchet baselines yet. Skipping regression gate."
+            exit 0
+          fi
+          latest=$(tail -1 "$baseline_file")
+          composite=$(echo "$latest" | python3 -c "import json,sys;print(json.load(sys.stdin)['composite'])")
+          # Project floor - edit per project expectations, default 0.75.
+          floor="${RATCHET_COMPOSITE_FLOOR:-0.75}"
+          if python3 -c "import sys;sys.exit(0 if $composite >= $floor else 1)"; then
+            echo "Latest baseline composite $composite >= floor $floor"
+          else
+            echo "::error::Latest baseline composite $composite is below floor $floor"
+            exit 1
+          fi

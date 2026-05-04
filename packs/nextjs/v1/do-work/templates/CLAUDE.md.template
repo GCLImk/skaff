@@ -1,0 +1,133 @@
+# CLAUDE.md
+
+Behavioral guidelines for all agents in this project. Every sub-agent reads this via project context load.
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+
+- Remove imports, variables, and functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+For multi-step tasks, state a brief plan:
+
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria require constant clarification.
+
+## 5. Mandatory Stack
+
+This project is opinionated. The agents enforce the table below. Deviations require an `AskUserQuestion` confirmation captured in the originating REQ. Full detail and rationale live in `.claude/conventions/nextjs-style.md`.
+
+| Layer        | Choice                                                          |
+| ------------ | --------------------------------------------------------------- |
+| Language     | TypeScript (strict)                                             |
+| Framework    | Next.js 14 (App Router)                                         |
+| UI           | React + Tailwind CSS, no component library                      |
+| Auth         | NextAuth.js + Google OAuth, `hd=myriota.com` (two-layer check)  |
+| Data         | Google Sheets API v4 (server-side only)                         |
+| Hosting      | Google Cloud Run (single container, scale to zero)              |
+| Container    | Docker, `node:20-alpine` base                                   |
+| Bridge       | Server-side HTTP POST to `NOTIFY_ENDPOINT`                      |
+
+## 6. House Rules (all agents)
+
+- No em dashes anywhere - in code comments, commit messages, docs, or output. Use " - " instead.
+- Use AskUserQuestion for blocking ambiguity. Do not guess.
+- Write summaries to `do-work/summaries/` on task completion.
+- Conventional Commits format for all commit messages: `type(scope): description`.
+
+## 7. Conventions Index
+
+Read the relevant convention file before the work that needs it. All live under `.claude/conventions/`.
+
+| File                       | Read before                                                         |
+| -------------------------- | ------------------------------------------------------------------- |
+| `nextjs-style.md`          | Writing or reviewing any TypeScript / TSX, route handler, server action, or stack-config (Dockerfile, next.config) change |
+| `markdown-style.md`        | Writing or editing any `.md` file                                   |
+| `commit-style.md`          | Writing any commit message, PR title, or PR body                    |
+| `do-work-protocol.md`      | Reading, writing, or moving any file under `do-work/`               |
+| `coverage-protocol.md`     | Reading `## Verification` or `## Plan Verification` sections in REQs |
+| `ratchet-protocol.md`      | Scoring, keeping, or reviewing the `## Ratchet` section in a REQ    |
+| `external-validation.md`   | Dispatching the adversarial reviewer pass from the ratchet agent    |
+| `knowledge-protocol.md`    | Writing an ADR (`docs/decisions/`) or proposed-convention entry (`do-work/proposed-conventions/`); aggregating artefacts in the loop summary |
+
+Conventions are cumulative. A task that edits a TypeScript file and commits touches nextjs-style and commit-style both.
+
+## 8. Agent Roster
+
+Agents live under `.claude/agents/` and are auto-discovered by Claude Code. The main session orchestrates per the `/do-work-run` slash command (`.claude/commands/do-work-run.md`).
+
+### Standard pipeline
+
+| Agent                | Model  | Role                                                                            |
+| -------------------- | ------ | ------------------------------------------------------------------------------- |
+| `nextjs-scout`       | haiku  | Read-only project survey: routes, server/client boundary, deps, integrations    |
+| `nextjs-implement`   | sonnet | Plan-only and implement modes. The ONLY agent that writes production code       |
+| `nextjs-doc-writer`  | sonnet | TSDoc on exported symbols in `lib/`, `types/`, `route.ts`; markdown docs        |
+| `reviewer`           | sonnet | Verdict: Approve / Request Changes / Escalate                                   |
+| `ratchet`            | sonnet | Seven-dimension quality gate; Kept or Rejected                                  |
+| `git-workflow`       | sonnet | Commits, branches, PRs, secret scan. The ONLY agent that runs `git add/commit`  |
+
+### Domain advisors (read-only)
+
+Spawned in step 4a of `/do-work-run` when the REQ touches their domain. Each writes a recommendations brief to `do-work/scout/REQ-NNN-<domain>-advice.md`. They never write production code; `nextjs-implement` consumes the briefs.
+
+| Agent                         | Domain                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| `nextjs-routing-specialist`   | App Router structure, server/client boundary, server actions, middleware, caching     |
+| `sheets-specialist`           | Google Sheets API v4: range planning, batch ops, retries, schema mapping, quotas      |
+| `auth-specialist`             | NextAuth + Google OAuth, `hd=myriota.com` two-layer check, session strategy, RBAC     |
+| `cloudrun-specialist`         | Dockerfile, Cloud Run config, Secret Manager, service-account scoping, deploy options |
+
+### Hard boundary
+
+- Only `nextjs-implement` writes production code.
+- Only `git-workflow` runs `git add` / `git commit`.
+- Only `ratchet` writes `## Ratchet` sections and `do-work/ratchet/baselines.jsonl`.
+- Domain advisors are read-only; they write to `do-work/scout/` only.
+
