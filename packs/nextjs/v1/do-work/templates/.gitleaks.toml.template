@@ -1,0 +1,51 @@
+# gitleaks config for nextjs pack.
+# Copy this file to the repo root as `.gitleaks.toml` to activate.
+#
+# gitleaks uses the default ruleset (150+ patterns) unless `useDefault = false`.
+# This template keeps the defaults and adds an allowlist tuned for a Next.js +
+# TypeScript repo: tests, fixtures, build outputs, and example env files.
+
+title = "gitleaks config for nextjs pack"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-specific allowlist for tests, fixtures, build output, and examples"
+
+# Paths where secrets-looking strings are acceptable (test fixtures, examples,
+# generated build output, lockfiles, dependency caches).
+paths = [
+  '''(^|/)tests/.*''',
+  '''(^|/)test/.*''',
+  '''(^|/)__tests__/.*''',
+  '''(^|/)__mocks__/.*''',
+  '''(^|/)fixtures/.*''',
+  '''\.test\.(ts|tsx|js|jsx|mjs|cjs)$''',
+  '''\.spec\.(ts|tsx|js|jsx|mjs|cjs)$''',
+  '''\.example$''',
+  '''\.env\.example$''',
+  '''(^|/)docs/.*''',
+  '''README\.md$''',
+  '''(^|/)\.next/.*''',
+  '''(^|/)node_modules/.*''',
+  '''(^|/)coverage/.*''',
+  '''(^|/)playwright-report/.*''',
+  '''(^|/)\.turbo/.*''',
+  '''pnpm-lock\.yaml$''',
+  '''package-lock\.json$''',
+  '''yarn\.lock$''',
+]
+
+# Inline content regexes to ignore. Add known-safe example tokens here.
+regexes = [
+  # Example: NextAuth secrets used in docs/examples - always placeholders.
+  # '''NEXTAUTH_SECRET=changeme[A-Za-z0-9]*''',
+  # Example: a fake Google OAuth client ID used in .env.example.
+  # '''GOCSPX-EXAMPLE[A-Za-z0-9_\-]+''',
+]
+
+# Commit SHAs to skip entirely. Useful after a one-time approved commit.
+# commits = [
+#   "1a2b3c4d5e6f7g8h9i0j",
+# ]

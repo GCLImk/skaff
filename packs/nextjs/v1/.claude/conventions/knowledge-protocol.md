@@ -1,0 +1,160 @@
+# Knowledge Protocol
+
+How agents capture project-specific knowledge that does not belong in conventions yet. Read this before writing to `docs/decisions/` or `do-work/proposed-conventions/`.
+
+## Why two lanes exist
+
+Conventions in `.claude/conventions/` earn their authority by being curated and stable. If any agent could append, they would drift into a dumping ground that future agents trust without vetting.
+
+So agent-authored knowledge has two protected lanes outside conventions:
+
+| Lane                              | Purpose                                                              | Owner                       | Lifecycle                                                       |
+| --------------------------------- | -------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------- |
+| `docs/decisions/` (ADRs)          | One-off decisions made in a REQ that future readers must understand   | `nextjs-doc-writer`         | Append-only. Superseded by a later ADR, never deleted.          |
+| `do-work/proposed-conventions/`   | Recurring patterns observed by advisors that may harden later         | Any domain advisor          | Mature entries promoted into a convention via a normal REQ.     |
+
+Conventions stay authoritative. ADRs record decisions. Proposed-conventions records candidates.
+
+## Lane 1: Architecture Decision Records (`docs/decisions/`)
+
+### When to write an ADR
+
+A REQ produces an ADR when it makes a decision that:
+
+- Locks in a choice future readers will not understand from the code alone (e.g. "we picked googleapis over @googleapis/sheets because of the auth helper").
+- Sets a tradeoff that future REQs need to respect (e.g. "we accepted no SSR for the admin tree because of session-token size").
+- Reverses or supersedes a previous decision (e.g. "we are migrating off Sheets for write paths").
+
+A REQ does NOT produce an ADR when it is a routine bug fix, a refactor inside an existing decision, or a docs-only change.
+
+### Filename and structure
+
+Files live at `docs/decisions/NNNN-<kebab-title>.md` where `NNNN` is the next zero-padded sequence number. Use `find docs/decisions -name '*.md' | wc -l` to pick the next number.
+
+Required structure:
+
+```markdown
+# ADR NNNN: <title>
+
+- Status: Accepted | Superseded by ADR-MMMM
+- Date: YYYY-MM-DD
+- Originating REQ: REQ-NNN
+- Authors: <agent role(s) that drafted; final approver is the human>
+
+## Context
+
+<2-5 sentences: the situation forcing the decision. Constraints, prior state, what triggered the call.>
+
+## Decision
+
+<1-3 sentences: what was decided. Imperative voice. No hedging.>
+
+## Consequences
+
+- **Positive:** <one or more>
+- **Negative:** <one or more>
+- **Tradeoffs accepted:** <one or more>
+
+## Alternatives considered
+
+- **<option>** - <why rejected in one line>
+- **<option>** - <why rejected in one line>
+```
+
+### Authoring rules
+
+- **Only `nextjs-doc-writer` writes ADRs.** Other agents can recommend an ADR in their summary; doc-writer drafts during the doc phase of `/do-work-run`.
+- **Append-only.** Never edit an accepted ADR. To change a decision, write a new ADR with `Status: Accepted` and edit the old one's Status line to `Superseded by ADR-MMMM` (the only edit ever permitted on an existing ADR).
+- **Self-contained.** A reader two years later must be able to understand the decision without the originating REQ open. Restate context in the ADR body.
+- **No ADR for guideline changes.** If the decision is "we will always use X for Y from now on", that is a convention edit, not an ADR.
+
+### Promotion of an ADR pattern
+
+An ADR is the record of a decision, not a request to change conventions. If the decision encodes a project-wide rule that future work must honour, the doc-writer also drops a paired entry in `do-work/proposed-conventions/` so a curator review can fold the rule into the actual convention.
+
+## Lane 2: Proposed Conventions (`do-work/proposed-conventions/`)
+
+### When to write a proposal
+
+A domain advisor (`nextjs-routing-specialist`, `sheets-specialist`, `auth-specialist`, `cloudrun-specialist`) writes a proposal when:
+
+- The same pattern appears in advice for **two or more REQs** within the same advisor's domain. Single-occurrence observations stay in the advice brief.
+- A doc-writer or implementer asks for one off the back of an ADR.
+
+The advisor never writes a proposal speculatively. Two real occurrences is the floor.
+
+### Filename and structure
+
+Files live at `do-work/proposed-conventions/<kebab-title>.md`. No sequence number - title is the key.
+
+If a proposal already exists for the pattern, **bump it** rather than create a new one. Add an Occurrence line and increment Maturity.
+
+Required structure:
+
+```markdown
+# Proposed: <pattern title>
+
+- First seen: YYYY-MM-DD
+- Last seen: YYYY-MM-DD
+- Originating REQs: REQ-AAA, REQ-BBB, ...
+- Author(s): <advisor role(s)>
+- Maturity: 1 | 2 | 3
+- Target convention: <filename in .claude/conventions/, or "new" if it would be a new file>
+
+## Pattern
+
+<one paragraph: the recurring pattern in concrete terms>
+
+## Why it should harden into a convention
+
+<one paragraph: what breaks if it stays informal; how often it has actually shown up>
+
+## Suggested convention edit
+
+<draft text, or pointer to the section of the target convention to amend>
+
+## Occurrences
+
+- YYYY-MM-DD - REQ-AAA - <one-line context>
+- YYYY-MM-DD - REQ-BBB - <one-line context>
+```
+
+### Maturity ladder
+
+- **1** - First written observation. Patterns at this level are advisory only; future agents should not treat them as binding.
+- **2** - Second independent occurrence logged. The pattern is real but may still be coincidence. Convert advisor advice to "consider X" but not "do X".
+- **3** - Third independent occurrence OR an explicit promotion request from a doc-writer/implementer. Ready for curator review.
+
+Never skip levels. Each occurrence is a separate REQ with the pattern surfacing in real work.
+
+### Promotion
+
+Promotion is a deliberate human (or curator-agent) act, not automatic. The flow:
+
+1. A proposal reaches Maturity 3.
+2. Orchestrator surfaces it in the loop summary (see "Flagging" below).
+3. The user (or a future curator agent) opens a REQ titled `convention: promote <pattern title>`.
+4. That REQ's `nextjs-implement` edits the target convention; `nextjs-doc-writer` deletes the proposal file in the same commit.
+5. Resulting commit message: `docs(convention): promote <pattern title> from proposed to <filename>`.
+
+Mature proposals that the user rejects after review get edited to `Maturity: 0 - rejected, see REQ-NNN` and stay in place as a tombstone so the same pattern does not re-emerge silently.
+
+## Flagging - how the orchestrator sees these
+
+Every agent that writes to either lane MUST flag it in its return summary using this exact shape so the main session can spot it without reading the artefact:
+
+```text
+Knowledge Artefacts:
+- ADR: docs/decisions/NNNN-<title>.md (new | superseding ADR-MMMM)
+- Proposed convention: do-work/proposed-conventions/<title>.md (new | bumped to maturity N)
+```
+
+Absent that section, the agent declares "Knowledge Artefacts: none." in its summary.
+
+The orchestrator's loop summary at `do-work/summaries/do-work-run-<date>.md` aggregates these into a top-level `## Knowledge Artefacts This Run` section so a single read tells you what landed and what reached promotion.
+
+## Path restrictions reminder
+
+- Only `nextjs-doc-writer` may write to `docs/decisions/**`.
+- Only the four domain advisors may write to `do-work/proposed-conventions/**`. Other agents must read-only.
+- Neither lane may modify `.claude/conventions/**` directly. Convention edits go through a normal REQ owned by `nextjs-implement`.

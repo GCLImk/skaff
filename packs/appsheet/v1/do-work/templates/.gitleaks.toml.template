@@ -1,0 +1,27 @@
+# gitleaks configuration for ISWG-OS.
+# Project-specific allowlist for AppSheet + GAS + Sheets docs.
+
+title = "gitleaks config for ISWG-OS"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-specific allowlist for docs, examples, and test fixtures"
+
+# Paths where secrets-looking strings are acceptable.
+paths = [
+  '''(^|/)apps-script/.*/tests/.*''',
+  '''(^|/)fixtures/.*''',
+  '''\.test\.(gs|ts|js)$''',
+  '''\.example$''',
+  '''(^|/)\.clasp\.example\.json$''',
+  '''(^|/)docs/.*''',
+  '''README\.md$''',
+]
+
+# Inline content regexes to ignore. Add known-safe example tokens here.
+regexes = [
+  # Example: placeholder script IDs used in .clasp.example.json
+  # '''1[A-Za-z0-9_-]{57}''',
+]

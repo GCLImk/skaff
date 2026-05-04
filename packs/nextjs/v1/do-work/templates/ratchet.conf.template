@@ -1,0 +1,40 @@
+# Ratchet configuration for Next.js + TypeScript projects.
+# Project overrides for ratchet-protocol.md defaults.
+# Copy or symlink this file to `ratchet.conf` at the repo root to activate.
+# Remove or comment out any line to fall back to the protocol default.
+#
+# Rationale for nextjs/v1 weighting:
+# - structure is elevated to 1.5 because the server / client boundary is the
+#   defining safety property of this stack. A leaked NOTIFY_ENDPOINT or a
+#   client-side import of `googleapis` is a security incident, not a style
+#   nit, so it must not be diluted by other dimensions.
+# - test_coverage stays at 1.0 (down from the protocol default of 1.5). At v1
+#   the testing layer (vitest + msw) is being established; raise once the
+#   suite stabilises.
+# - dead_code stays at 0.5 because TypeScript's tree-shaking + ts-prune
+#   produce a high false-positive rate on a Next.js codebase.
+#
+# Dimension weights. parse_check is a gate, not a weight - its 1.0 entry here
+# is documentation only; a parse_check below 1.0 zeroes the composite.
+parse_check_weight     = 1.0
+lint_weight            = 1.0
+complexity_weight      = 1.0
+structure_weight       = 1.5
+dead_code_weight       = 0.5
+test_coverage_weight   = 1.0
+doc_quality_weight     = 1.0
+
+# Composite at or above this triggers an external validation pass.
+external_validation_after_composite = 0.85
+
+# Implicit non-regression thresholds. Drop below any of these and the ratchet
+# rejects regardless of composite direction.
+threshold_parse_check    = 1.00
+threshold_doc_quality    = 0.80
+threshold_test_coverage  = 0.40
+
+# N/A overrides. The nextjs pack starts with `dead_code` N/A until ts-prune
+# (or an equivalent unused-export tool) is wired in. Remove from this list as
+# soon as the tool lands and the dimension becomes measurable.
+# Format: comma-separated dimension names, or empty for none.
+na_dimensions = dead_code
