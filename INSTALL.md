@@ -12,6 +12,7 @@ A pack is a language or platform bundle. Each pack ships one or more versions.
 | `appsheet` | v2 (maintained), v1 (frozen)        | Google AppSheet + Apps Script + Sheets schema governance projects   |
 | `python`   | v1 (maintained)                     | Python 3.12+ projects with uv, ruff, pytest, coverage, interrogate  |
 | `nextjs`   | v1 (maintained)                     | Next.js 14 + TypeScript on Cloud Run, NextAuth Google OAuth, Sheets v4 |
+| `gcli`     | v1 (maintained)                     | Python 3.9+ agentic CLI with Chrome MV3 extension and Gemini Gem persona/skill system |
 
 v1 packs carried an orchestrator-as-sub-agent topology that cannot spawn specialists via the Agent tool. v2 moves orchestration to a `/do-work-run` slash command executed by the main session. See each pack's `PACK.md` for the upgrade path.
 

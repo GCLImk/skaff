@@ -1,0 +1,38 @@
+# Ratchet configuration - project overrides for ratchet-protocol.md defaults.
+# Copy or symlink this file to `ratchet.conf` at the repo root to activate.
+# Remove or comment out any line to fall back to the protocol default.
+
+# Dimension weights. parse_check is a gate, not a weight - its 1.0 entry here
+# is documentation only; a parse_check below 1.0 zeroes the composite.
+#
+# Rationale for gcli pack weighting:
+# - smoke verification is the primary integration gate, so test_coverage stays
+#   elevated even though the pack does not enforce line-level coverage.
+# - line coverage is not required because many gcli checks are smoke or
+#   integration style rather than per-line instrumentation friendly.
+# - doc_quality is weighted lower because internal helpers are common and a
+#   new repo may not expose much public API surface yet.
+parse_check_weight     = 1.0
+lint_weight            = 1.0
+complexity_weight      = 1.0
+structure_weight       = 1.0
+dead_code_weight       = 0.5
+test_coverage_weight   = 1.2
+doc_quality_weight     = 0.8
+
+# Composite at or above this triggers an external validation pass.
+external_validation_after_composite = 0.85
+
+# Implicit non-regression thresholds. Drop below any of these and the ratchet
+# rejects regardless of composite direction.
+threshold_parse_check    = 1.00
+threshold_doc_quality    = 0.70
+threshold_test_coverage  = 0.60
+
+# N/A overrides. List any dimension that should be treated as N/A on this
+# project. Useful on repos that lack a specific tool (e.g. no test suite).
+# Format: comma-separated dimension names, or empty for none.
+# On gcli-style projects, `test_coverage` may be null when only the smoke
+# import gate exists and no pytest suite is present yet. `doc_quality` may be
+# null when the project has no public API surface yet.
+na_dimensions =

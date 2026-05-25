@@ -2,7 +2,7 @@
 
 A production-grade agent harness for Claude Code. Takes natural-language requests to "add a feature" or "fix a bug", captures them as structured work items, runs them through a delegated pipeline of specialist sub-agents (scout, implement, document, review, ratchet quality-gate, commit), and archives them as self-contained, auditable units.
 
-Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), and `python` (3.12+, uv + ruff + pytest) at v1 (maintained). Orchestration runs in the main Claude Code session via a `/do-work-run` slash command from v2 (csharp/appsheet) and v1 (python) onward. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
+Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python` (3.12+, uv + ruff + pytest) and `gcli` (Python 3.9+ agentic CLI with Chrome MV3 + Gemini personas and skills) at v1 (maintained). Orchestration runs in the main Claude Code session via a `/do-work-run` slash command from v2 (csharp/appsheet) and v1 (python/gcli) onward. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
 
 ## Table of contents
 
@@ -158,7 +158,8 @@ Skaff/
     ├── csharp/PACK.md + v1/            .NET 9+ pack, version manifest + overlay
     ├── appsheet/PACK.md + v1/          AppSheet/GAS/Sheets pack
     ├── nextjs/PACK.md + v1/            Next.js 14 + TypeScript on Cloud Run, NextAuth + Sheets v4
-    └── python/PACK.md                  planned, no version shipped yet
+    ├── python/PACK.md + v1/            Python 3.12+ pack, uv + ruff + pytest
+    └── gcli/PACK.md + v1/              Python 3.9+ agentic CLI, Chrome MV3, Gemini personas + skills
 ```
 
 ### Design principles
@@ -431,7 +432,7 @@ Copy `do-work/templates/ratchet.conf.template` to `ratchet.conf` at repo root. A
 ### Long-term / speculative
 
 - **Self-improving conventions** - the pattern library above, extended. After N REQs where a specific reviewer comment recurs, the scaffold suggests a convention update.
-- **Additional packs** - Python ships at v1 (maintained). TypeScript, Go, Rust remain open. See [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md) for the build steps.
+- **Additional packs** - Python and gcli ship at v1 (maintained). TypeScript, Go, Rust remain open. See [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md) for the build steps.
 - **Adversarial ratchet** - the current external validator uses a prompt-level adversarial stance. A stronger mechanism would actually run a different model family (e.g. GPT or Gemini) for the external validation pass, eliminating same-model correlated failure entirely.
 
 ### Deliberately not roadmapped
