@@ -1,0 +1,15 @@
+---
+description: Protocol for reading, writing, and moving files in the do-work/ work queue
+globs: "do-work/**"
+alwaysApply: false
+---
+
+# do-work Protocol
+
+- Queue states are `do-work/REQ-*-pending.md`, `do-work/working/REQ-*-in-progress.md`, and `do-work/archive/**/REQ-*-done.md`.
+- Only the main session acquires or releases `do-work/.lock` and moves REQs between states. The lock file is JSON with `pid`, `started_at`, and `host`.
+- Root REQ files are read-only once processing starts. Specialists may write only to their owned areas such as `do-work/scout/`, `do-work/summaries/`, and `do-work/ratchet/`.
+- Treat `do-work/working/` and `do-work/archive/` REQs as immutable. Use a new addendum REQ instead of patching them.
+- Do not edit skill-owned sections: `## Verification`, `## Plan Verification`, `## Plan Hash`, or `## Ratchet`.
+- Keep dispatch briefs within the 2000 token verbatim-content budget. Pass file paths and short summaries when over budget.
+- Read `.claude/conventions/do-work-protocol.md` for the full protocol.

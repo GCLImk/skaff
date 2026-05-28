@@ -1,0 +1,11 @@
+---
+applyTo: "**/*.js,**/*.gs"
+---
+
+# AppSheet Instructions
+
+- Treat Apps Script code, Sheets schema specs, and AppSheet config specs as coordinated surfaces.
+- Exported Apps Script functions need JSDoc. Triggers stay in `triggers.gs`. Secrets come from `PropertiesService`.
+- Schema and AppSheet spec changes include migration notes, operator checklists, and verbatim expressions where relevant.
+- No em dashes in code comments or docs. Use " - " instead.
+- Read `.claude/conventions/appsheet-style.md` for the complete style guide.

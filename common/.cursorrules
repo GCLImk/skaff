@@ -1,0 +1,22 @@
+# Cursor Rules
+
+This project uses skaff shared instructions.
+
+## Behavioral Guidelines
+
+1. **Think Before Coding** - state assumptions, surface ambiguity, and ask rather than guess.
+2. **Simplicity First** - prefer the minimum correct solution with no speculative features or over-abstraction.
+3. **Surgical Changes** - touch only what is needed, match existing style, and clean up only the orphans created by your change.
+4. **Goal-Driven Execution** - plan steps with verification criteria before coding, then verify the result.
+5. **House Rules** - no em dashes, use AskUserQuestion for blocking ambiguity, write summaries to `do-work/summaries/`, and use Conventional Commits.
+
+## Required Reading
+
+- Read `.claude/conventions/<lang>-style.md` before coding in that language.
+- Read `.claude/conventions/markdown-style.md` before editing Markdown.
+- Read `.claude/conventions/commit-style.md` before preparing commits.
+- Read `.claude/conventions/do-work-protocol.md` before touching the work queue.
+
+## Agent Mode
+
+In Cursor Agent mode, sub-agents are defined in `.claude/agents/`. Reference them with the agent tool.

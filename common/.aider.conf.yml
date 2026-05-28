@@ -1,0 +1,22 @@
+# Aider configuration for skaff-scaffolded projects.
+# Loads AGENTS.md as a read-only conventions file (prompt-cached when caching enabled).
+
+# Always-loaded read-only conventions file
+read:
+  - AGENTS.md
+  - .claude/conventions/commit-style.md
+
+# Commit message format (Conventional Commits)
+commit-message-prefix: "chore(aider): "
+
+# Auto-commit behavior (leave explicit commits to git-workflow agent)
+auto-commits: false
+
+# Attribute co-authorship
+attribute-co-authored-by: true
+attribute-author: false
+
+# Linting - customize per project after install
+# lint-cmd:
+#   - "python: ruff check --fix"
+# auto-lint: false
