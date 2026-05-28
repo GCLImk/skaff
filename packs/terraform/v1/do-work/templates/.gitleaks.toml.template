@@ -1,0 +1,39 @@
+# gitleaks configuration - project overrides for secret scanning.
+# Copy this file to the repo root as `.gitleaks.toml` to activate.
+#
+# gitleaks uses the default ruleset (150+ patterns) unless `useDefault = false`.
+# This template keeps the defaults and adds an allowlist for common false
+# positives in Terraform examples and documentation.
+#
+# Never commit `.tfvars`, `.auto.tfvars`, or state files with real secrets.
+# Commit only `.tfvars.example` placeholders and prefer secret-manager refs.
+
+title = "gitleaks config for terraform pack"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-specific allowlist for Terraform examples and docs"
+
+# Paths where secrets-looking strings are acceptable (examples and docs only).
+paths = [
+  '''(^|/)examples/.*''',
+  '''(^|/)tests/.*''',
+  '''(^|/)fixtures/.*''',
+  '''(^|/)docs/.*''',
+  '''README\.md$''',
+  '''\.example$''',
+  '''\.tfvars\.example$''',
+]
+
+# Inline content regexes to ignore. Add known-safe fake identifiers here.
+regexes = [
+  # '''project-[0-9]{12}''',
+  # '''arn:aws:iam::123456789012:role/example-role''',
+]
+
+# Commit SHAs to skip entirely. Useful after a one-time approved commit.
+# commits = [
+#   "1a2b3c4d5e6f7g8h9i0j",
+# ]

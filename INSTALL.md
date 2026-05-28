@@ -11,9 +11,11 @@ A pack is a language or platform bundle. Each pack ships one or more versions.
 | `csharp` | v2 (maintained), v1 (frozen) | .NET 9+ projects |
 | `appsheet` | v2 (maintained), v1 (frozen) | Google AppSheet + Apps Script + Sheets |
 | `python` | v1 (maintained) | Python 3.12+ with uv, ruff, pytest |
+| `go` | v1 (maintained) | Go 1.22+ with modules, go test, and golangci-lint |
 | `nextjs` | v1 (maintained) | Next.js 14 + TypeScript on Cloud Run |
 | `gcli` | v1 (maintained) | Python agentic CLI + Chrome MV3 + Gemini |
 | `react` | v1 (maintained) | React 18+ + TypeScript 5+ + Vite |
+| `vue3-vite` | v1 (maintained) | Vue 3 + TypeScript 5+ + Vite |
 | `html-css` | v1 (maintained) | HTML5/CSS3/vanilla JS + Playwright |
 | `designer` | v1 (maintained) | Design systems + Storybook + CSS tokens |
 | `appscript` | v1 (maintained) | Google Apps Script V8 + clasp |

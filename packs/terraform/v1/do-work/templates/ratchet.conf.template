@@ -1,0 +1,34 @@
+# Ratchet configuration - project overrides for ratchet-protocol.md defaults.
+# Copy or symlink this file to `ratchet.conf` at the repo root to activate.
+# Remove or comment out any line to fall back to the protocol default.
+
+# Dimension weights. parse_check is a gate, not a weight - its 1.0 entry here
+# is documentation only; a parse_check below 1.0 zeroes the composite.
+#
+# Rationale for Terraform pack weighting:
+# - security is elevated to 2.0 because infrastructure mistakes become
+#   security incidents quickly. Let checkov and security-style carry extra
+#   influence in the ratchet.
+# - test_coverage stays at 1.0. Coverage means module and resource coverage
+#   via `terraform test`, and the threshold below is intentionally lower
+#   than app packs because infrastructure tests are harder to exhaustively
+#   automate.
+parse_check_weight     = 1.0
+lint_weight            = 1.0
+complexity_weight      = 1.0
+structure_weight       = 1.0
+dead_code_weight       = 0.5
+test_coverage_weight   = 1.0
+doc_quality_weight     = 1.0
+security_weight        = 2.0
+
+# Composite at or above this triggers an external validation pass.
+external_validation_after_composite = 0.85
+
+# Implicit non-regression thresholds.
+threshold_parse_check    = 1.00
+threshold_test_coverage  = 0.50
+
+# N/A overrides. List any dimension that should be treated as N/A on this
+# project. Format: comma-separated dimension names, or empty for none.
+na_dimensions =

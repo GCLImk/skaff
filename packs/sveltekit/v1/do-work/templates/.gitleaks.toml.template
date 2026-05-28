@@ -1,0 +1,39 @@
+# gitleaks configuration - project overrides for secret scanning.
+# Copy this file to the repo root as `.gitleaks.toml` to activate.
+#
+# gitleaks uses the default ruleset (150+ patterns) unless `useDefault = false`.
+# This template keeps the defaults and adds an allowlist for common false
+# positives in frontend test fixtures and example files.
+
+title = "gitleaks config for do-work scaffold"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-specific allowlist for test fixtures and examples"
+
+# Paths where secrets-looking strings are acceptable (test fixtures, examples).
+paths = [
+  '''(^|/)tests/.*''',
+  '''(^|/)test/.*''',
+  '''(^|/)__tests__/.*''',
+  '''(^|/)fixtures/.*''',
+  '''\.test\.(ts|js)$''',
+  '''\.example$''',
+  '''\.env\.example$''',
+  '''(^|/)docs/.*''',
+  '''README\.md$''',
+]
+
+# Inline content regexes to ignore. Add known-safe test tokens here.
+# Example: a fake API key always used in documentation examples.
+regexes = [
+  # '''AKIAEXAMPLE1234567890''',
+  # '''sk_test_[A-Za-z0-9]{24,}''',   # Stripe test keys are not secrets
+]
+
+# Commit SHAs to skip entirely. Useful after a one-time approved commit.
+# commits = [
+#   "1a2b3c4d5e6f7g8h9i0j",
+# ]

@@ -1,0 +1,12 @@
+---
+description: SvelteKit and Svelte 5 coding conventions for this project
+globs: "**/*.svelte,**/*.ts,**/*.js"
+alwaysApply: false
+---
+
+- Use Svelte 5 runes only. No legacy `$:` reactive statements or `export let`.
+- Use `<script lang="ts">`, `$props()`, `$state`, `$derived`, and `$effect`.
+- Keep browser-only APIs out of server files such as `+page.server.ts`, `+layout.server.ts`, `+server.ts`, and `src/lib/server/**`.
+- Prefer SvelteKit load functions and form actions over client fetch when the flow fits the framework.
+- Test user-visible behavior with Vitest and Svelte Testing Library using accessible queries.
+- Read `.claude/conventions/svelte-style.md` for the full guide.

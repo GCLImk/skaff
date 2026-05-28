@@ -1,0 +1,10 @@
+---
+description: Core behavioral guidelines for all AI work in this React project
+alwaysApply: true
+---
+
+- Think before coding - state assumptions, surface tradeoffs, and ask when ambiguity blocks progress.
+- Simplicity first - write the minimum code that solves the request and avoid speculative abstractions.
+- Surgical changes - touch only what serves the request and clean up only what your change makes unused.
+- Goal-driven execution - define short steps with verification checks and loop until the result is proven.
+- House rules - no em dashes, read relevant conventions first, write summaries to `do-work/summaries/`, and use Conventional Commits.

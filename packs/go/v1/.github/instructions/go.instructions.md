@@ -1,0 +1,14 @@
+---
+applyTo: "**/*.go"
+---
+
+# Go Instructions
+
+- Standard library first. Add third-party dependencies only when they provide substantial value.
+- Define interfaces in consumer packages. Accept interfaces and return concrete types.
+- Blocking and request-scoped functions take `context.Context` as the first argument.
+- Wrap errors with `fmt.Errorf("context: %w", err)` and avoid naked returns.
+- Use table-driven tests with `t.Run`, `testify/assert`, and `testify/require`.
+- Exported types and functions need godoc comments.
+- No em dashes in comments or docs. Use " - " instead.
+- Read `.claude/conventions/go-style.md` for the complete style guide.

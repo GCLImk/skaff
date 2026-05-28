@@ -2,7 +2,7 @@
 
 Language and platform packs for the Claude Agent Scaffold. Each pack is a complete overlay of agents, conventions, templates, and optional tool-specific multi-LLM files targeting one language or stack.
 
-Current packs include `csharp`, `appsheet`, `python`, `nextjs`, `gcli`, `react`, `html-css`, `designer`, and `appscript`. Recent additions are `react`, `html-css`, `designer`, and `appscript`.
+Current packs include `csharp`, `appsheet`, `python`, `go`, `nextjs`, `gcli`, `react`, `vue3-vite`, `html-css`, `designer`, and `appscript`. Recent additions are `go`, `react`, `vue3-vite`, `html-css`, `designer`, and `appscript`.
 
 ## Contract
 

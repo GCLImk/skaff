@@ -2,7 +2,7 @@
 
 A production-grade agent harness for AI coding tools. Takes natural-language requests to "add a feature" or "fix a bug", captures them as structured work items, runs them through a delegated pipeline of specialist sub-agents (scout, implement, document, review, ratchet quality-gate, commit), and archives them as self-contained, auditable units. Works with Claude Code, GitHub Copilot (CLI and cloud agent), Gemini CLI, Cursor, Windsurf, Aider, OpenHands, and Continue.
 
-Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python`, `nextjs`, `gcli`, `react`, `html-css`, `designer`, and `appscript` at v1 (maintained). Skaff installs a unified directory tree that works across the major AI coding tools while preserving the Claude Code `/do-work-run` workflow where supported. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
+Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python`, `go`, `nextjs`, `gcli`, `react`, `vue3-vite`, `html-css`, `designer`, and `appscript` at v1 (maintained). Skaff installs a unified directory tree that works across the major AI coding tools while preserving the Claude Code `/do-work-run` workflow where supported. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
 
 ## Table of contents
 
@@ -85,9 +85,11 @@ Default pack is `csharp`. Pinning: `<pack>@<version>`. Full pack list and versio
 | `csharp` | v2 (maintained), v1 (frozen) | .NET 9+ projects |
 | `appsheet` | v2 (maintained), v1 (frozen) | Google AppSheet + Apps Script + Sheets |
 | `python` | v1 (maintained) | Python 3.12+ with uv, ruff, pytest |
+| `go` | v1 (maintained) | Go 1.22+ with modules, go test, and golangci-lint |
 | `nextjs` | v1 (maintained) | Next.js 14 + TypeScript on Cloud Run |
 | `gcli` | v1 (maintained) | Python agentic CLI + Chrome MV3 + Gemini |
 | `react` | v1 (maintained) | React 18+ + TypeScript 5+ + Vite |
+| `vue3-vite` | v1 (maintained) | Vue 3 + TypeScript 5+ + Vite |
 | `html-css` | v1 (maintained) | HTML5/CSS3/vanilla JS + Playwright |
 | `designer` | v1 (maintained) | Design systems + Storybook + CSS tokens |
 | `appscript` | v1 (maintained) | Google Apps Script V8 + clasp |
@@ -190,6 +192,7 @@ Skaff/
     ├── nextjs/PACK.md + v1/            Next.js 14 + TypeScript on Cloud Run
     ├── gcli/PACK.md + v1/              Python agentic CLI + Chrome MV3 + Gemini
     ├── react/PACK.md + v1/             React 18+ + TypeScript 5+ + Vite
+    ├── vue3-vite/PACK.md + v1/         Vue 3 + TypeScript 5+ + Vite
     ├── html-css/PACK.md + v1/          HTML5/CSS3/vanilla JS + Playwright
     ├── designer/PACK.md + v1/          Design systems + Storybook + CSS tokens
     └── appscript/PACK.md + v1/         Google Apps Script V8 + clasp

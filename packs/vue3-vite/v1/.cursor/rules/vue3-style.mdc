@@ -1,0 +1,11 @@
+---
+description: Vue 3 and TypeScript coding conventions for this project
+globs: "**/*.vue,**/*.ts,**/*.js"
+alwaysApply: false
+---
+
+- Composition API only. No Options API.
+- Use `<script setup lang="ts">` in Single File Components and keep composables prefixed with `use`.
+- Avoid `any`. Prefer explicit types or `unknown` with narrowing.
+- Use Pinia for cross-component state and keep user-visible behavior covered with Vue Testing Library.
+- Read `.claude/conventions/vue3-style.md` for the full guide.
