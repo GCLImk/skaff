@@ -1,0 +1,13 @@
+---
+description: HTML, CSS, and vanilla JavaScript style for Vite-based projects
+globs: "**/*.html,**/*.css,**/*.js"
+alwaysApply: false
+---
+
+# HTML/CSS Style
+
+- Use semantic HTML first and keep heading hierarchy coherent.
+- Choose one CSS naming strategy per project - BEM or utility-first.
+- Use CSS custom properties for tokens, mobile-first layout, and visible focus states.
+- No `var`, prefer `const`, use event delegation, and never use unsafe `innerHTML` for user content.
+- Read the matching full convention file under `.claude/conventions/` before making non-trivial changes.

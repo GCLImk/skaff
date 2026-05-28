@@ -1,0 +1,13 @@
+---
+description: Design-system and Storybook style for token-driven component libraries
+globs: "**/*.css,**/*.scss,**/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.stories.*"
+alwaysApply: false
+---
+
+# Designer Style
+
+- Tokens are the source of truth. No magic numbers in component styles.
+- Use semantic token names and token-driven theming.
+- Every meaningful component change requires Storybook story updates.
+- All interactive elements need visible focus states and accessible names.
+- Read the matching full convention file under `.claude/conventions/` before making non-trivial changes.

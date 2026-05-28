@@ -1,0 +1,11 @@
+---
+description: Protocol for the do-work task queue
+globs: "do-work/**"
+alwaysApply: false
+---
+
+- REQ states are pending, in-progress, and done.
+- Only the main session moves REQs between queue states and owns `do-work/.lock`.
+- `react-scout` writes only to `do-work/scout/`, `ratchet` appends only to `do-work/ratchet/`, and specialists may append summaries under `do-work/summaries/`.
+- Do not edit skill-owned sections such as `## Verification`, `## Plan Verification`, or agent-owned `## Ratchet` blocks unless you are the owning workflow.
+- Read `.claude/conventions/do-work-protocol.md` for the full protocol.

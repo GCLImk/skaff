@@ -1,0 +1,20 @@
+# Ratchet configuration for React projects.
+# Copy to ratchet.conf at the repo root to activate.
+
+parse_check_weight      = 1.0
+lint_weight             = 1.0
+complexity_weight       = 1.0
+structure_weight        = 1.0
+dead_code_weight        = 0.5
+test_coverage_weight    = 1.5
+doc_quality_weight      = 1.0
+accessibility_weight    = 1.5
+
+external_validation_after_composite = 0.85
+
+threshold_parse_check   = 1.00
+threshold_doc_quality   = 0.85
+threshold_test_coverage = 0.70
+threshold_accessibility = 0.85
+
+na_dimensions =
