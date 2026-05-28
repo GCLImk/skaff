@@ -4,18 +4,29 @@ Files that are *conceptually* the same across packs. No automation enforces this
 
 ## Files that should stay aligned
 
-| File (within each pack)                      | Why it should track                                                  |
-| -------------------------------------------- | -------------------------------------------------------------------- |
-| `.claude/conventions/markdown-style.md`      | Generic markdown rules. Only language-tag examples diverge per pack. |
-| `.claude/conventions/do-work-protocol.md`    | Queue, lock, and ownership semantics are protocol-level. Agent names within the ownership table legitimately diverge per pack. |
-| `.claude/conventions/ratchet-protocol.md`    | Seven dimensions and the graduated kept bar are protocol-level. Tool mapping in the per-pack ratchet agent legitimately diverges. |
-| `.claude/conventions/coverage-protocol.md`   | Coverage formula and band thresholds are protocol-level.             |
-| `.claude/conventions/external-validation.md` | Adversarial prompt is protocol-level.                                |
+| File (within each pack) | Why it should track |
+| --- | --- |
+| `.claude/conventions/markdown-style.md` | Generic markdown rules. Only language-tag examples diverge per pack. |
+| `.claude/conventions/do-work-protocol.md` | Queue, lock, and ownership semantics are protocol-level. Agent names within the ownership table legitimately diverge per pack. |
+| `.claude/conventions/ratchet-protocol.md` | Seven dimensions and the graduated kept bar are protocol-level. Tool mapping in the per-pack ratchet agent legitimately diverges. |
+| `.claude/conventions/coverage-protocol.md` | Coverage formula and band thresholds are protocol-level. |
+| `.claude/conventions/external-validation.md` | Adversarial prompt is protocol-level. |
+| `.cursor/rules/behavioral-guidelines.mdc` | Behavioral guidelines are protocol-level; frontmatter schema is shared. |
+| `.cursor/rules/do-work-protocol.mdc` | Queue semantics are protocol-level. |
+| `.windsurf/rules/behavioral-guidelines.md` | Same as Cursor version. |
+| `.windsurf/workflows/do-work.md` | Queue drain workflow steps are protocol-level. |
+| `.gemini/skills/reviewer/SKILL.md` | Reviewer role and verdict format are protocol-level. |
+| `.gemini/skills/git-workflow/SKILL.md` | Git conventions and secret-scan protocol are protocol-level. |
+| `.agents/skills/reviewer/SKILL.md` | Mirror of Gemini reviewer. |
+| `.agents/skills/git-workflow/SKILL.md` | Mirror of Gemini git-workflow. |
+| `.github/agents/reviewer.agent.md` | Mirror of Gemini reviewer in Copilot format. |
+| `.github/agents/git-workflow.agent.md` | Mirror of Gemini git-workflow in Copilot format. |
+| `.github/instructions/do-work.instructions.md` | Queue semantics are protocol-level. |
 
 **Not listed** (deliberately pack-specific, never backport):
 
 - `<lang>-style.md` - the pack's defining convention.
-- Agent files - each pack owns its agent roster.
+- Most agent files - each pack owns its agent roster. The protocol-level mirrors listed above should track.
 - `commands/do-work-run.md` - each pack's slash command names its own specialists.
 - Ratchet signal-source table in `ratchet.md`.
 - `ratchet.conf.template` - tuned per stack.
@@ -40,5 +51,8 @@ The truly pack-agnostic files live in `common/` (not under `packs/`) and are ins
 - `common/.claude/conventions/commit-style.md` - Conventional Commits rules, language-agnostic.
 - `common/do-work/templates/REQ-template.md` and `UR-template.md` - generic request shapes.
 - `common/do-work/` runtime dir skeletons (`.gitkeep` sentinels).
+- `common/GEMINI.md`, `common/AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/conventions.instructions.md`, `.cursorrules`, `.windsurfrules`, `.aider.conf.yml`, `.continue/rules/behavioral-guidelines.md` - shared multi-LLM files installed into every target.
+
+The common multi-LLM files are not pack-specific and do not need backporting. They live in `common/` and auto-install to every pack.
 
 If a pack ever needs to diverge on one of these, it can ship the file under its own version dir and the pack overlay will win (installer copies `common/` first, pack second). The override should be called out in `PACK.md`.

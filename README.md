@@ -1,8 +1,8 @@
 # Claude Agent Scaffold
 
-A production-grade agent harness for Claude Code. Takes natural-language requests to "add a feature" or "fix a bug", captures them as structured work items, runs them through a delegated pipeline of specialist sub-agents (scout, implement, document, review, ratchet quality-gate, commit), and archives them as self-contained, auditable units.
+A production-grade agent harness for AI coding tools. Takes natural-language requests to "add a feature" or "fix a bug", captures them as structured work items, runs them through a delegated pipeline of specialist sub-agents (scout, implement, document, review, ratchet quality-gate, commit), and archives them as self-contained, auditable units. Works with Claude Code, GitHub Copilot (CLI and cloud agent), Gemini CLI, Cursor, Windsurf, Aider, OpenHands, and Continue.
 
-Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python` (3.12+, uv + ruff + pytest) and `gcli` (Python 3.9+ agentic CLI with Chrome MV3 + Gemini personas and skills) at v1 (maintained). Orchestration runs in the main Claude Code session via a `/do-work-run` slash command from v2 (csharp/appsheet) and v1 (python/gcli) onward. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
+Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python`, `nextjs`, `gcli`, `react`, `html-css`, `designer`, and `appscript` at v1 (maintained). Skaff installs a unified directory tree that works across the major AI coding tools while preserving the Claude Code `/do-work-run` workflow where supported. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
 
 ## Table of contents
 
@@ -12,6 +12,7 @@ Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppShe
 - [Install](#install)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
+- [Multi-LLM support](#multi-llm-support)
 - [Data flows](#data-flows)
 - [Agent roster](#agent-roster)
 - [Conventions](#conventions)
@@ -23,7 +24,7 @@ Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppShe
 
 ## What this is
 
-A drop-in directory tree - `CLAUDE.md`, `.claude/`, `do-work/` - that turns Claude Code into a repeatable engineering pipeline. Not a framework, not an MCP server, not an app. Just markdown files and a few YAML/TOML templates that Claude Code reads and acts on.
+A drop-in directory tree - `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.claude/`, `.github/`, `.cursor/`, `.windsurf/`, `.continue/`, `do-work/` - that turns major AI coding tools into a repeatable engineering pipeline. Skaff installs one unified directory tree that works natively across Claude Code, GitHub Copilot, Gemini CLI, Cursor, Windsurf, Aider, OpenHands, and Continue. Not a framework, not an MCP server, not an app. Just markdown files and a few YAML/TOML templates that the target tools read and act on.
 
 Core promises:
 
@@ -37,7 +38,7 @@ Core promises:
 - Not a replacement for human judgement on architectural decisions.
 - Not a substitute for real tests. The ratchet measures coverage; it does not vouch for test quality.
 - Not an auto-merge tool. Every PR still goes through human review.
-- Not language-agnostic out of the box. The shipped specialist agents target C#/.NET. Swap them for your stack.
+- Not one-size-fits-all out of the box. Pick the closest pack, then tune the shipped agents, skills, and instructions for your repo.
 
 ## Use cases
 
@@ -53,7 +54,7 @@ Does not fit:
 
 - **Ambiguous research spikes.** If the requirements genuinely cannot be stated, the plan-verify gate will escalate repeatedly. Use a conversational Claude Code session for exploration, then capture concrete REQs afterward.
 - **Architecturally-invasive rewrites.** The ratchet's graduated kept bar rejects large multi-dimension regressions. For deliberate architectural change that trades short-term scores for long-term gain, use the Override escalation option and document the trade.
-- **Non-code work.** No templates for UX, design, or content workflows. A determined user could adapt, but that is not the target.
+- **Broad content workflows.** The scaffold now ships frontend and design-system packs, but it still does not target content-only or open-ended research workflows.
 
 ## Install
 
@@ -64,6 +65,7 @@ Run the installer, point it at an empty directory or an existing repo.
 ```powershell
 .\install.ps1 -NewProjectDir C:\repos\MyService
 .\install.ps1 -NewProjectDir C:\repos\MyApp -Pack appsheet
+.\install.ps1 -NewProjectDir C:\repos\MyScript -Pack appscript
 .\install.ps1 -NewProjectDir C:\repos\MyApp -Pack csharp@v1 -Force
 ```
 
@@ -72,21 +74,39 @@ Run the installer, point it at an empty directory or an existing repo.
 ```bash
 ./install.sh /path/to/my-project
 ./install.sh /path/to/my-app --pack appsheet
+./install.sh /path/to/my-script --pack appscript
 ./install.sh /path/to/my-app --pack csharp@v1 --force
 ```
 
 Default pack is `csharp`. Pinning: `<pack>@<version>`. Full pack list and version manifests under [packs/](./packs/).
 
+| Pack | Versions | What it targets |
+| --- | --- | --- |
+| `csharp` | v2 (maintained), v1 (frozen) | .NET 9+ projects |
+| `appsheet` | v2 (maintained), v1 (frozen) | Google AppSheet + Apps Script + Sheets |
+| `python` | v1 (maintained) | Python 3.12+ with uv, ruff, pytest |
+| `nextjs` | v1 (maintained) | Next.js 14 + TypeScript on Cloud Run |
+| `gcli` | v1 (maintained) | Python agentic CLI + Chrome MV3 + Gemini |
+| `react` | v1 (maintained) | React 18+ + TypeScript 5+ + Vite |
+| `html-css` | v1 (maintained) | HTML5/CSS3/vanilla JS + Playwright |
+| `designer` | v1 (maintained) | Design systems + Storybook + CSS tokens |
+| `appscript` | v1 (maintained) | Google Apps Script V8 + clasp |
+
 The installer is idempotent. Existing files are preserved unless `-Force` or `--force` is supplied. Only `common/` and `packs/<pack>/<version>/` are copied; repo-root files and other packs are out of scope by construction.
 
 ### After install
 
-1. Review `CLAUDE.md` and `.claude/conventions/` - tune to your project's voice.
-2. Confirm the agent roster in `.claude/agents/` matches your stack. Replace or remove agents that do not apply.
-3. Optional: tune `do-work/templates/ratchet.conf.template` and copy to `ratchet.conf` at repo root.
-4. Optional: copy `do-work/templates/.gitleaks.toml.template` to `.gitleaks.toml` for secret-scan allowlists.
-5. Optional: copy `do-work/templates/ci/ratchet-gate.yml.template` to `.github/workflows/ratchet-gate.yml` for CI-side PR gating. See `do-work/templates/ci/README.md` for branch protection settings.
-6. Commit:
+1. Review `CLAUDE.md` and `.claude/conventions/`.
+2. For GitHub Copilot, `.github/copilot-instructions.md` is already installed.
+3. For Gemini CLI, `GEMINI.md` is already installed.
+4. For Cursor, `.cursorrules` and `.cursor/rules/` are already installed.
+5. For Windsurf, `.windsurfrules` and `.windsurf/rules/` are already installed.
+6. For Aider, `.aider.conf.yml` is already installed.
+7. Confirm the agent roster in `.claude/agents/` and tool-specific equivalents in `.gemini/skills/`, `.agents/skills/`, `.github/agents/`.
+8. Optional: tune `do-work/templates/ratchet.conf.template` and copy to `ratchet.conf` at repo root.
+9. Optional: copy `do-work/templates/.gitleaks.toml.template` to `.gitleaks.toml` for secret-scan allowlists.
+10. Optional: copy `do-work/templates/ci/ratchet-gate.yml.template` to `.github/workflows/ratchet-gate.yml` for CI-side PR gating. See `do-work/templates/ci/README.md` for branch protection settings.
+11. Commit:
 
    ```bash
    git add .
@@ -95,11 +115,16 @@ The installer is idempotent. Existing files are preserved unless `-Force` or `--
 
 ### Prerequisites
 
-- **Claude Code** CLI or the claude.ai Code interface
-- **.NET SDK 9.x** for the shipped C# agents (if you are keeping them)
-- **git** with `gh` CLI for the git-workflow agent
-- **gitleaks** (optional but strongly recommended for secret scanning)
-- **dotnet format** for lint/format gates
+- **Claude Code** CLI - full agent workflow with sub-agent spawning.
+- **GitHub Copilot** (CLI, VS Code, cloud agent) - reads `CLAUDE.md`, `GEMINI.md`, and `AGENTS.md` natively; agents in `.github/agents/`.
+- **Gemini CLI** - reads `GEMINI.md`; skills in `.gemini/skills/`.
+- **Cursor** - reads `.cursor/rules/` and `.cursorrules`.
+- **Windsurf** - reads `.windsurf/rules/` and `.windsurfrules`.
+- **Aider** - reads `AGENTS.md` via `.aider.conf.yml`.
+- **OpenHands** - reads `AGENTS.md`; skills in `.agents/skills/`.
+- **Continue** - reads `.continue/rules/`.
+- **Pack-specific toolchains** still apply - for example .NET SDK 9.x and `dotnet format` for `csharp`.
+- **git** with `gh` CLI remains recommended for the git-workflow agent. **gitleaks** is still strongly recommended for secret scanning.
 
 ## Quick start
 
@@ -151,15 +176,23 @@ Skaff/
 ├── CLAUDE.md, README.md, INSTALL.md    docs (never installed)
 ├── install.sh, install.ps1             installers (never installed)
 ├── common/                             shared overlay copied first
+│   ├── AGENTS.md, GEMINI.md
+│   ├── .github/, .continue/            shared multi-LLM instructions
+│   ├── .cursorrules, .windsurfrules
+│   ├── .aider.conf.yml
 │   ├── .claude/conventions/commit-style.md
 │   └── do-work/                        generic templates + runtime dir skeletons
 └── packs/
     ├── README.md, SHARED-NOTES.md      pack contract, backport checklist
-    ├── csharp/PACK.md + v1/            .NET 9+ pack, version manifest + overlay
-    ├── appsheet/PACK.md + v1/          AppSheet/GAS/Sheets pack
-    ├── nextjs/PACK.md + v1/            Next.js 14 + TypeScript on Cloud Run, NextAuth + Sheets v4
+    ├── csharp/PACK.md + v1/, v2/       .NET 9+ pack, version manifest + overlay
+    ├── appsheet/PACK.md + v1/, v2/     AppSheet/GAS/Sheets pack
     ├── python/PACK.md + v1/            Python 3.12+ pack, uv + ruff + pytest
-    └── gcli/PACK.md + v1/              Python 3.9+ agentic CLI, Chrome MV3, Gemini personas + skills
+    ├── nextjs/PACK.md + v1/            Next.js 14 + TypeScript on Cloud Run
+    ├── gcli/PACK.md + v1/              Python agentic CLI + Chrome MV3 + Gemini
+    ├── react/PACK.md + v1/             React 18+ + TypeScript 5+ + Vite
+    ├── html-css/PACK.md + v1/          HTML5/CSS3/vanilla JS + Playwright
+    ├── designer/PACK.md + v1/          Design systems + Storybook + CSS tokens
+    └── appscript/PACK.md + v1/         Google Apps Script V8 + clasp
 ```
 
 ### Design principles
@@ -197,6 +230,32 @@ Skaff/
 ```
 
 Each sub-agent runs with its own system prompt, tool permissions, and context window. Summaries return to the orchestrator; full working state stays inside the sub-agent. The main user conversation never sees the bulk of the work.
+
+## Multi-LLM support
+
+Skaff generates instruction files for all major AI coding tools from a single install. Every target project ships:
+
+| File / Directory | Tool |
+| --- | --- |
+| `CLAUDE.md` | Claude Code (primary), GitHub Copilot CLI |
+| `GEMINI.md` | Gemini CLI, GitHub Copilot CLI |
+| `AGENTS.md` | OpenHands, Aider, GitHub Copilot cloud agent |
+| `.github/copilot-instructions.md` | GitHub Copilot Chat (VS Code, GitHub.com) |
+| `.github/instructions/` | Copilot path-specific instructions |
+| `.github/agents/` | GitHub Copilot custom agents (sub-agents) |
+| `.cursorrules` | Cursor IDE (legacy format) |
+| `.cursor/rules/` | Cursor IDE (current format, glob-aware) |
+| `.windsurfrules` | Windsurf IDE (legacy format) |
+| `.windsurf/rules/` | Windsurf IDE (current format) |
+| `.windsurf/workflows/` | Windsurf slash-command workflows |
+| `.gemini/skills/` | Gemini CLI sub-agent skills |
+| `.agents/skills/` | OpenHands sub-agent skills |
+| `.aider.conf.yml` | Aider CLI |
+| `.continue/rules/` | Continue VS Code extension |
+
+The behavioral guidelines (think before coding, simplicity first, surgical changes, goal-driven execution, house rules) are embedded in every file. Tool-specific capabilities (sub-agent spawning, skill activation, Copilot agent system) are configured for tools that support them.
+
+**Note:** GitHub Copilot CLI reads `CLAUDE.md`, `GEMINI.md`, and `AGENTS.md` natively. Projects scaffolded with skaff are immediately compatible with Copilot CLI without any extra steps.
 
 ## Data flows
 
@@ -432,7 +491,7 @@ Copy `do-work/templates/ratchet.conf.template` to `ratchet.conf` at repo root. A
 ### Long-term / speculative
 
 - **Self-improving conventions** - the pattern library above, extended. After N REQs where a specific reviewer comment recurs, the scaffold suggests a convention update.
-- **Additional packs** - Python and gcli ship at v1 (maintained). TypeScript, Go, Rust remain open. See [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md) for the build steps.
+- **Additional packs** - Python, nextjs, html-css, designer, and gcli ship at v1 (maintained). Go and Rust remain open. See [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md) for the build steps.
 - **Adversarial ratchet** - the current external validator uses a prompt-level adversarial stance. A stronger mechanism would actually run a different model family (e.g. GPT or Gemini) for the external validation pass, eliminating same-model correlated failure entirely.
 
 ### Deliberately not roadmapped

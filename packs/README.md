@@ -1,6 +1,8 @@
 # Packs
 
-Language and platform packs for the Claude Agent Scaffold. Each pack is a complete overlay of agents, conventions, and templates targeting one language or stack.
+Language and platform packs for the Claude Agent Scaffold. Each pack is a complete overlay of agents, conventions, templates, and optional tool-specific multi-LLM files targeting one language or stack.
+
+Current packs include `csharp`, `appsheet`, `python`, `nextjs`, `gcli`, `react`, `html-css`, `designer`, and `appscript`. Recent additions are `react`, `html-css`, `designer`, and `appscript`.
 
 ## Contract
 
@@ -10,16 +12,23 @@ Every pack lives at `packs/<pack-name>/` and ships one or more versions as sibli
 
 ```
 packs/<pack>/v<N>/
-  .claude/
+  .claude/                 (required)
     agents/*.md
-    conventions/*.md     (at minimum the pack-specific style convention
-                          and any convention that names agents)
-  do-work/
+    commands/*.md
+    conventions/*.md
+  do-work/                 (required)
     templates/
-      CLAUDE.md.template    (the target's top-level CLAUDE.md source)
-      ratchet.conf.template (tuned weights/thresholds for this stack)
+      CLAUDE.md.template      (the target's top-level CLAUDE.md source)
+      ratchet.conf.template   (tuned weights/thresholds for this stack)
       .gitleaks.toml.template (allowlist tuned to this stack)
-      ci/                   (optional; omit if no CI gate ships yet)
+      ci/                     (optional; omit if no CI gate ships yet)
+  .cursor/rules/           (recommended - multi-LLM)
+  .windsurf/rules/         (recommended - multi-LLM)
+  .windsurf/workflows/     (recommended - multi-LLM)
+  .gemini/skills/          (recommended - multi-LLM)
+  .agents/skills/          (recommended - multi-LLM)
+  .github/agents/          (recommended - multi-LLM)
+  .github/instructions/    (recommended - multi-LLM)
 ```
 
 A version is standalone. No layering across versions. No symlinks. Copy what you need from another version, diverge freely, document the divergence in `PACK.md`.
@@ -87,3 +96,9 @@ The target project's git history holds the diff. Review and commit. Abandoned mi
 ## Shared files
 
 A handful of files are expected to track across packs (commit style, generic markdown style). See [SHARED-NOTES.md](./SHARED-NOTES.md) for the backport checklist.
+
+## Multi-LLM compatibility
+
+New packs should include the multi-LLM directories where the tool supports them: `.cursor/rules/`, `.windsurf/rules/`, `.windsurf/workflows/`, `.gemini/skills/`, `.agents/skills/`, `.github/agents/`, and `.github/instructions/`.
+
+The `common/` tree handles the generic cross-tool files automatically for every install, including `GEMINI.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `.cursorrules`, `.windsurfrules`, `.aider.conf.yml`, and `.continue/rules/`. Pack overlays only need to add the pack-specific rules, agents, skills, and instructions.

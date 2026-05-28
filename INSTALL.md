@@ -1,20 +1,24 @@
 # Claude Agent Scaffold - Install
 
-Installs a `CLAUDE.md`, agent roster, convention files, and `do-work/` runtime skeleton into a target project. The agent roster and conventions are pulled from a **pack** you pick at install time.
+Installs a `CLAUDE.md`, shared multi-LLM instruction files, agent and skill definitions, convention files, and `do-work/` runtime skeleton into a target project. The agent roster, tool-specific overlays, and conventions are pulled from a **pack** you pick at install time.
 
 ## Packs
 
 A pack is a language or platform bundle. Each pack ships one or more versions.
 
-| Pack       | Versions (latest)                   | What it targets                                                     |
-| ---------- | ----------------------------------- | ------------------------------------------------------------------- |
-| `csharp`   | v2 (maintained), v1 (frozen)        | .NET 9+ projects using `dotnet` CLI, CS1591 docs gate               |
-| `appsheet` | v2 (maintained), v1 (frozen)        | Google AppSheet + Apps Script + Sheets schema governance projects   |
-| `python`   | v1 (maintained)                     | Python 3.12+ projects with uv, ruff, pytest, coverage, interrogate  |
-| `nextjs`   | v1 (maintained)                     | Next.js 14 + TypeScript on Cloud Run, NextAuth Google OAuth, Sheets v4 |
-| `gcli`     | v1 (maintained)                     | Python 3.9+ agentic CLI with Chrome MV3 extension and Gemini Gem persona/skill system |
+| Pack | Versions | What it targets |
+| --- | --- | --- |
+| `csharp` | v2 (maintained), v1 (frozen) | .NET 9+ projects |
+| `appsheet` | v2 (maintained), v1 (frozen) | Google AppSheet + Apps Script + Sheets |
+| `python` | v1 (maintained) | Python 3.12+ with uv, ruff, pytest |
+| `nextjs` | v1 (maintained) | Next.js 14 + TypeScript on Cloud Run |
+| `gcli` | v1 (maintained) | Python agentic CLI + Chrome MV3 + Gemini |
+| `react` | v1 (maintained) | React 18+ + TypeScript 5+ + Vite |
+| `html-css` | v1 (maintained) | HTML5/CSS3/vanilla JS + Playwright |
+| `designer` | v1 (maintained) | Design systems + Storybook + CSS tokens |
+| `appscript` | v1 (maintained) | Google Apps Script V8 + clasp |
 
-v1 packs carried an orchestrator-as-sub-agent topology that cannot spawn specialists via the Agent tool. v2 moves orchestration to a `/do-work-run` slash command executed by the main session. See each pack's `PACK.md` for the upgrade path.
+Legacy v1 packs such as `csharp@v1` and `appsheet@v1` carried an orchestrator-as-sub-agent topology that cannot spawn specialists via the Agent tool. Maintained packs use a `/do-work-run` slash command executed by the main session. See each pack's `PACK.md` for the upgrade path.
 
 Full list and manifests under [packs/](./packs/). Pack contract and version bumping rules in [packs/README.md](./packs/README.md).
 
@@ -25,6 +29,7 @@ Full list and manifests under [packs/](./packs/). Pack contract and version bump
 ```powershell
 .\install.ps1 -NewProjectDir C:\repos\MyService
 .\install.ps1 -NewProjectDir C:\repos\MyApp -Pack appsheet
+.\install.ps1 -NewProjectDir C:\repos\MyScript -Pack appscript
 .\install.ps1 -NewProjectDir C:\repos\MyApp -Pack csharp@v1 -Force
 ```
 
@@ -33,6 +38,7 @@ Full list and manifests under [packs/](./packs/). Pack contract and version bump
 ```bash
 ./install.sh /path/to/my-project
 ./install.sh /path/to/my-app --pack appsheet
+./install.sh /path/to/my-script --pack appscript
 ./install.sh /path/to/my-app --pack csharp@v1 --force
 ```
 
@@ -40,10 +46,23 @@ Default pack is `csharp`. Default version is the latest numeric `v<N>` directory
 
 ## What gets installed
 
-The installer copies two source trees into the target, in order:
+The installer copies two source trees in order:
 
-1. **`common/`** - the shared tree: language-agnostic conventions (`commit-style.md`), generic REQ/UR templates, and `do-work/` runtime dir skeletons.
-2. **`packs/<pack>/<version>/`** - the pack overlay: agent roster, pack-specific conventions, `CLAUDE.md.template`, `ratchet.conf.template`, `.gitleaks.toml.template`, optional `ci/` workflows.
+1. **`common/`** - Language-agnostic files installed in every project:
+   - Behavioral convention (`commit-style.md`)
+   - Generic REQ/UR templates
+   - `do-work/` runtime dir skeletons
+   - Multi-LLM instruction files: `GEMINI.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/conventions.instructions.md`, `.cursorrules`, `.windsurfrules`, `.aider.conf.yml`, `.continue/rules/behavioral-guidelines.md`
+
+2. **`packs/<pack>/<version>/`** - Pack overlay (wins on collisions):
+   - Agent roster (`.claude/agents/`, `.github/agents/`, `.gemini/skills/`, `.agents/skills/`)
+   - Pack conventions (`.claude/conventions/`)
+   - Cursor rules (`.cursor/rules/`)
+   - Windsurf rules and workflows (`.windsurf/rules/`, `.windsurf/workflows/`)
+   - GitHub Copilot instructions (`.github/instructions/`)
+   - `CLAUDE.md.template` (installed as `CLAUDE.md`)
+   - `ratchet.conf.template`, `.gitleaks.toml.template`
+   - Optional CI workflows (`ci/`)
 
 The pack overlay wins on any file collision with `common/`. The `CLAUDE.md.template` is special-cased: it installs to `<target>/CLAUDE.md` and is not preserved under `do-work/templates/` in the target.
 
@@ -85,7 +104,14 @@ Review the diff in the target's git history, keep what you want, discard what yo
 3. Optional: copy `do-work/templates/ratchet.conf.template` to `ratchet.conf` at the repo root and tune weights, thresholds, and N/A overrides.
 4. Optional: copy `do-work/templates/.gitleaks.toml.template` to `.gitleaks.toml` at the repo root.
 5. Optional (packs that ship one): copy `do-work/templates/ci/ratchet-gate.yml.template` to `.github/workflows/ratchet-gate.yml`.
-6. Commit the scaffold:
+6. For GitHub Copilot, `.github/copilot-instructions.md` is already installed.
+7. For Gemini CLI, `GEMINI.md` is already installed.
+8. For Cursor, `.cursorrules` and `.cursor/rules/` are already installed.
+9. For Windsurf, `.windsurfrules` and `.windsurf/rules/` are already installed.
+10. For Aider, `.aider.conf.yml` is already installed.
+11. Confirm the tool-specific agents in `.gemini/skills/`, `.agents/skills/`, and `.github/agents/`.
+12. Confirm the Copilot path-specific instructions in `.github/instructions/`.
+13. Commit the scaffold:
 
    ```bash
    git add .
