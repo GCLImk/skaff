@@ -2,7 +2,7 @@
 
 A production-grade agent harness for AI coding tools. Takes natural-language requests to "add a feature" or "fix a bug", captures them as structured work items, runs them through a delegated pipeline of specialist sub-agents (scout, implement, document, review, ratchet quality-gate, commit), and archives them as self-contained, auditable units. Works with Claude Code, GitHub Copilot (CLI and cloud agent), Gemini CLI, Cursor, Windsurf, Aider, OpenHands, and Continue.
 
-Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python`, `go`, `nextjs`, `gcli`, `react`, `vue3-vite`, `html-css`, `designer`, and `appscript` at v1 (maintained). Skaff installs a unified directory tree that works across the major AI coding tools while preserving the Claude Code `/do-work-run` workflow where supported. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
+Packs per language/stack. Ships `csharp` (.NET 9+) and `appsheet` (Google AppSheet + Apps Script + Sheets governance) at v2 (maintained) with v1 (frozen), plus `python`, `go`, `nextjs`, `gcli`, `react`, `vue3-vite`, `html-css`, `designer`, `appscript`, `sveltekit`, and `terraform` at v1 (maintained). Skaff installs a unified directory tree that works across the major AI coding tools while preserving the Claude Code `/do-work-run` workflow where supported. Contract for building new packs in [packs/README.md](./packs/README.md). Standardisation checklist in [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md).
 
 ## Table of contents
 
@@ -93,6 +93,8 @@ Default pack is `csharp`. Pinning: `<pack>@<version>`. Full pack list and versio
 | `html-css` | v1 (maintained) | HTML5/CSS3/vanilla JS + Playwright |
 | `designer` | v1 (maintained) | Design systems + Storybook + CSS tokens |
 | `appscript` | v1 (maintained) | Google Apps Script V8 + clasp |
+| `sveltekit` | v1 (maintained) | SvelteKit 2+ + Svelte 5 + TypeScript 5+ + Vite |
+| `terraform` | v1 (maintained) | Terraform 1.7+ / OpenTofu-compatible HCL2 + tflint + checkov |
 
 The installer is idempotent. Existing files are preserved unless `-Force` or `--force` is supplied. Only `common/` and `packs/<pack>/<version>/` are copied; repo-root files and other packs are out of scope by construction.
 
@@ -189,13 +191,16 @@ Skaff/
     ├── csharp/PACK.md + v1/, v2/       .NET 9+ pack, version manifest + overlay
     ├── appsheet/PACK.md + v1/, v2/     AppSheet/GAS/Sheets pack
     ├── python/PACK.md + v1/            Python 3.12+ pack, uv + ruff + pytest
+    ├── go/PACK.md + v1/                Go 1.22+ pack, modules + go test + golangci-lint
     ├── nextjs/PACK.md + v1/            Next.js 14 + TypeScript on Cloud Run
     ├── gcli/PACK.md + v1/              Python agentic CLI + Chrome MV3 + Gemini
     ├── react/PACK.md + v1/             React 18+ + TypeScript 5+ + Vite
     ├── vue3-vite/PACK.md + v1/         Vue 3 + TypeScript 5+ + Vite
     ├── html-css/PACK.md + v1/          HTML5/CSS3/vanilla JS + Playwright
     ├── designer/PACK.md + v1/          Design systems + Storybook + CSS tokens
-    └── appscript/PACK.md + v1/         Google Apps Script V8 + clasp
+    ├── appscript/PACK.md + v1/         Google Apps Script V8 + clasp
+    ├── sveltekit/PACK.md + v1/         SvelteKit 2+ + Svelte 5 + TypeScript 5+ + Vite
+    └── terraform/PACK.md + v1/         Terraform 1.7+ / OpenTofu-compatible HCL2 + tflint + checkov
 ```
 
 ### Design principles
@@ -494,7 +499,7 @@ Copy `do-work/templates/ratchet.conf.template` to `ratchet.conf` at repo root. A
 ### Long-term / speculative
 
 - **Self-improving conventions** - the pattern library above, extended. After N REQs where a specific reviewer comment recurs, the scaffold suggests a convention update.
-- **Additional packs** - Python, nextjs, html-css, designer, and gcli ship at v1 (maintained). Go and Rust remain open. See [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md) for the build steps.
+- **Additional packs** - Python, nextjs, html-css, designer, gcli, go, sveltekit, and terraform ship at v1 (maintained). Rust remains open. See [packs/TEMPLATE-CHECKLIST.md](./packs/TEMPLATE-CHECKLIST.md) for the build steps.
 - **Adversarial ratchet** - the current external validator uses a prompt-level adversarial stance. A stronger mechanism would actually run a different model family (e.g. GPT or Gemini) for the external validation pass, eliminating same-model correlated failure entirely.
 
 ### Deliberately not roadmapped
