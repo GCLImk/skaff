@@ -13,7 +13,7 @@ All agents read this file before writing or editing markdown (`.md`) files.
 ## Code Fences
 
 - Always fence code blocks with triple backticks.
-- Always tag the language: ` ```python `, ` ```bash `, ` ```json `, ` ```text `.
+- Always tag the language: ` ```hcl `, ` ```bash `, ` ```json `, ` ```text `.
 - Close every fence. Unclosed fences break rendering.
 - Indented (four-space) code blocks are not permitted.
 
@@ -52,7 +52,7 @@ No custom admonition syntax, no HTML `<div>` blocks.
 
 - Inline links: `[text](url)`.
 - Reference-style links permitted for repeated URLs in long documents.
-- Relative links for intra-repo references: `[python style](./python-style.md)`.
+- Relative links for intra-repo references: `[terraform style](./terraform-style.md)`.
 
 ## Style
 

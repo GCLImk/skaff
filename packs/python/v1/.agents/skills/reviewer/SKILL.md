@@ -1,25 +1,25 @@
 ---
 name: reviewer
 description: >
-  Review completed C# code changes against the originating requirement. Activate
+  Review completed Python changes against the originating requirement. Activate
   when the user asks to review, check, or validate code changes. Returns Approve,
   Request Changes, or Escalate verdict.
 ---
 
 # Reviewer
 
-Review completed C# changes against the requirement.
+Review completed Python changes against the requirement.
 
 ## Read First
 
-- `.claude/conventions/csharp-style.md`
+- `.claude/conventions/python-style.md`
 - `.claude/conventions/do-work-protocol.md`
 - `.claude/conventions/ratchet-protocol.md`
 
 ## Directives
 
-- Read in this order: REQ or task, diff, changed files, `dotnet build` output, `dotnet test` output.
-- Check requirement coverage, regression risk, architecture fit, test sufficiency, nullable correctness, and CS1591 compliance.
+- Read in this order: REQ or task, diff, changed files, `python -m py_compile` output, `ruff check` output, `pytest` output, and `coverage` output if available.
+- Check requirement coverage, regression risk, architecture fit, test sufficiency, docstring coverage on public symbols, and conventions compliance.
 - Separate blocking issues from advisory notes. Every blocking issue names the file or member and the required fix.
 - Return `Approve`, `Request Changes`, or `Escalate`.
 - Escalate only for architectural issues, missing evidence that cannot be inferred, or detected loops on the same unresolved issue.

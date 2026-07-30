@@ -27,7 +27,7 @@
 Authoring rules (see .claude/conventions/knowledge-protocol.md):
 
 - Filename: do-work/proposed-conventions/<kebab-title>.md. Title is the key.
-- Only the four domain advisors write here. Two real occurrences is the floor before the first proposal lands.
+- Only this project's domain advisor / specialist agents write here. Two real occurrences is the floor before the first proposal lands.
 - If a proposal already exists for the pattern, BUMP it (add an Occurrence line, increment Maturity), do not duplicate.
 - Maturity ladder: 1 first observation, 2 second occurrence, 3 ready for curator review.
 - Promotion is a deliberate human/curator act via a new REQ titled "convention: promote <title>".

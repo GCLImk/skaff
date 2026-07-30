@@ -9,10 +9,15 @@
 #                   Created if it does not exist.
 #
 # Options:
-#   --pack <ref>    Pack and optional version. Default: csharp@latest.
-#                   Examples: --pack csharp, --pack appsheet@v1, --pack python@v2.
-#   --force         Overwrite existing files. Without this, existing files are
-#                   skipped and reported.
+#   --pack <ref>          Pack and optional version. Default: csharp@latest.
+#                         Examples: --pack csharp, --pack appsheet@v1, --pack python@v2.
+#   --force               Overwrite existing files. Without this, existing files are
+#                         skipped and reported.
+#   --allow-pack-switch   Proceed when the target's recorded .claude/.pack names a
+#                         different pack than --pack. Without this, installing a
+#                         different pack over an existing install is refused after
+#                         listing the files that would be orphaned. Re-installing the
+#                         same pack (any version) is never a switch.
 
 set -euo pipefail
 
@@ -23,9 +28,10 @@ Usage: $(basename "$0") <NewProjectDir> [--pack <pack>[@<version>]] [--force]
 Deploys the Claude agent scaffold into <NewProjectDir>.
 
 Options:
-  --pack <ref>  Pack and optional version (default: csharp). e.g. appsheet@v1
-  --force       Overwrite existing files in the target.
-  -h, --help    Show this help and exit.
+  --pack <ref>          Pack and optional version (default: csharp). e.g. appsheet@v1
+  --force               Overwrite existing files in the target.
+  --allow-pack-switch   Proceed when the target was installed with a different pack.
+  -h, --help            Show this help and exit.
 EOF
 }
 
@@ -44,11 +50,13 @@ esac
 new_project_dir="$1"
 shift
 force=0
+allow_pack_switch=0
 pack_ref="csharp"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --force) force=1 ;;
+    --allow-pack-switch) allow_pack_switch=1 ;;
     --pack)
       shift
       if [ "$#" -lt 1 ]; then
@@ -117,6 +125,56 @@ fi
 
 target="$(cd -- "$new_project_dir" >/dev/null 2>&1 && pwd)"
 
+# Guard against pack mixing. The installer never removes files, so replacing
+# an installed pack with a different one orphans the first pack's
+# uniquely-named agents (still discoverable and spawnable by Claude Code) and
+# silently swaps same-named agents (ratchet.md, reviewer.md, git-workflow.md,
+# do-work-run) between incompatible toolchains and ratchet dimension sets.
+existing_pack_file="$target/.claude/.pack"
+if [ -f "$existing_pack_file" ]; then
+  existing_pack_name="$(grep -E '^pack:' "$existing_pack_file" | head -1 | sed -E 's/^pack:[[:space:]]*//')"
+  existing_pack_version="$(grep -E '^version:' "$existing_pack_file" | head -1 | sed -E 's/^version:[[:space:]]*//')"
+
+  if [ -n "$existing_pack_name" ] && [ "$existing_pack_name" != "$pack_name" ]; then
+    old_pack_version_dir="$source_root/packs/$existing_pack_name/$existing_pack_version"
+    orphaned_list=()
+    if [ -d "$old_pack_version_dir" ]; then
+      while IFS= read -r -d '' f; do
+        rel="${f#"$old_pack_version_dir"/}"
+        if [ ! -e "$pack_version_dir/$rel" ]; then
+          orphaned_list+=("$rel")
+        fi
+      done < <(find "$old_pack_version_dir" -type f -print0)
+    fi
+
+    if [ "$allow_pack_switch" -eq 0 ]; then
+      echo "Target was installed with pack '$existing_pack_name@$existing_pack_version'. Requested pack is '$pack_name@$pack_version'." >&2
+      echo "Refusing: installing a different pack over an existing install orphans the previous pack's files - Claude Code still discovers and can spawn orphaned agents by their frontmatter 'name:', and same-named agents (ratchet.md, reviewer.md, git-workflow.md, the do-work-run command) get silently swapped between incompatible toolchains and ratchet dimension sets." >&2
+      echo >&2
+      if [ "${#orphaned_list[@]}" -gt 0 ]; then
+        echo "${#orphaned_list[@]} file(s) unique to '$existing_pack_name@$existing_pack_version' would be orphaned:" >&2
+        for f in "${orphaned_list[@]}"; do
+          echo "  - $f" >&2
+        done
+      else
+        echo "Could not enumerate the previous pack's overlay - packs/$existing_pack_name/$existing_pack_version is no longer present in this scaffold checkout." >&2
+      fi
+      echo >&2
+      echo "Re-run with --allow-pack-switch to proceed anyway." >&2
+      exit 1
+    fi
+
+    echo "Switching pack: '$existing_pack_name@$existing_pack_version' -> '$pack_name@$pack_version' (--allow-pack-switch supplied)."
+    if [ "${#orphaned_list[@]}" -gt 0 ]; then
+      echo "${#orphaned_list[@]} file(s) unique to '$existing_pack_name@$existing_pack_version' will be orphaned:"
+      for f in "${orphaned_list[@]}"; do
+        echo "  - $f"
+      done
+    fi
+    echo
+  fi
+fi
+
 echo "Source: $source_root"
 echo "Pack:   $pack_name@$pack_version"
 echo "Target: $target"
@@ -155,7 +213,9 @@ copy_tree() {
   done < <(find "$src" -type f -print0)
 }
 
-# Common files first, then the pack overlay wins on any collision.
+# Common files first, then the pack overlay. Both share $force: without it,
+# whichever copy is written first (common/) wins a collision; with it, the
+# pack (written second) wins. See INSTALL.md "What gets installed".
 copy_tree "$common_root"
 copy_tree "$pack_version_dir"
 

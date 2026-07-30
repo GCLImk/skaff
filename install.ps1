@@ -19,11 +19,21 @@
   Overwrite existing files in the target. Without this flag, existing files
   are skipped and reported.
 
+.PARAMETER AllowPackSwitch
+  Proceed when the target's recorded .claude/.pack names a different pack
+  than -Pack. Without this flag, installing a different pack over an
+  existing install is refused after listing the files that would be
+  orphaned. Re-installing the same pack (any version) is never a switch
+  and never requires this flag.
+
 .EXAMPLE
   .\install.ps1 -NewProjectDir C:\repos\MyService
 
 .EXAMPLE
   .\install.ps1 -NewProjectDir ..\my-project -Pack appsheet@v1 -Force
+
+.EXAMPLE
+  .\install.ps1 -NewProjectDir ..\my-project -Pack terraform -Force -AllowPackSwitch
 #>
 
 [CmdletBinding()]
@@ -33,7 +43,9 @@ param(
 
     [string] $Pack = 'csharp',
 
-    [switch] $Force
+    [switch] $Force,
+
+    [switch] $AllowPackSwitch
 )
 
 $ErrorActionPreference = 'Stop'
@@ -96,6 +108,56 @@ if (-not $target) {
     Write-Host "Creating target directory: $NewProjectDir"
     New-Item -ItemType Directory -Path $NewProjectDir -Force | Out-Null
     $target = Resolve-Path -Path $NewProjectDir
+}
+
+# Guard against pack mixing. The installer never removes files, so replacing
+# an installed pack with a different one orphans the first pack's
+# uniquely-named agents (still discoverable and spawnable by Claude Code) and
+# silently swaps same-named agents (ratchet.md, reviewer.md, git-workflow.md,
+# do-work-run) between incompatible toolchains and ratchet dimension sets.
+$existingPackFile = Join-Path $target '.claude/.pack'
+if (Test-Path $existingPackFile) {
+    $existingPackName = $null
+    $existingPackVersion = $null
+    Get-Content $existingPackFile | ForEach-Object {
+        if ($_ -match '^pack:\s*(.+)$') { $existingPackName = $Matches[1].Trim() }
+        if ($_ -match '^version:\s*(.+)$') { $existingPackVersion = $Matches[1].Trim() }
+    }
+
+    if ($existingPackName -and $existingPackName -ne $packName) {
+        $oldPackVersionDir = Join-Path $sourceRoot "packs/$existingPackName/$existingPackVersion"
+        $orphaned = @()
+        if (Test-Path $oldPackVersionDir) {
+            $oldFiles = Get-ChildItem -Path $oldPackVersionDir -Recurse -File |
+                ForEach-Object { $_.FullName.Substring($oldPackVersionDir.Length).TrimStart('\', '/') }
+            $newFiles = Get-ChildItem -Path $packVersionDir -Recurse -File |
+                ForEach-Object { $_.FullName.Substring($packVersionDir.Length).TrimStart('\', '/') }
+            $newFilesSet = [System.Collections.Generic.HashSet[string]]::new([string[]] $newFiles)
+            $orphaned = $oldFiles | Where-Object { -not $newFilesSet.Contains($_) } | Sort-Object
+        }
+
+        if (-not $AllowPackSwitch) {
+            Write-Host "Target was installed with pack '$existingPackName@$existingPackVersion'. Requested pack is '$packName@$packVersion'."
+            Write-Host "Refusing: installing a different pack over an existing install orphans the previous pack's files - Claude Code still discovers and can spawn orphaned agents by their frontmatter 'name:', and same-named agents (ratchet.md, reviewer.md, git-workflow.md, the do-work-run command) get silently swapped between incompatible toolchains and ratchet dimension sets."
+            Write-Host ""
+            if ($orphaned.Count -gt 0) {
+                Write-Host "$($orphaned.Count) file(s) unique to '$existingPackName@$existingPackVersion' would be orphaned:"
+                $orphaned | ForEach-Object { Write-Host "  - $_" }
+            } else {
+                Write-Host "Could not enumerate the previous pack's overlay - packs/$existingPackName/$existingPackVersion is no longer present in this scaffold checkout."
+            }
+            Write-Host ""
+            Write-Host "Re-run with -AllowPackSwitch to proceed anyway."
+            exit 1
+        }
+
+        Write-Host "Switching pack: '$existingPackName@$existingPackVersion' -> '$packName@$packVersion' (-AllowPackSwitch supplied)."
+        if ($orphaned.Count -gt 0) {
+            Write-Host "$($orphaned.Count) file(s) unique to '$existingPackName@$existingPackVersion' will be orphaned:"
+            $orphaned | ForEach-Object { Write-Host "  - $_" }
+        }
+        Write-Host ""
+    }
 }
 
 Write-Host "Source: $sourceRoot"

@@ -28,7 +28,7 @@
 Authoring rules (see .claude/conventions/knowledge-protocol.md):
 
 - Filename: docs/decisions/NNNN-<kebab-title>.md where NNNN is the next zero-padded sequence number.
-- Only nextjs-doc-writer writes ADRs. Append-only. Never edit an accepted ADR except to flip its Status line to "Superseded by ADR-MMMM".
+- Only this project's doc-writer agent (<pack>-doc-writer) writes ADRs. Append-only. Never edit an accepted ADR except to flip its Status line to "Superseded by ADR-MMMM".
 - Self-contained. Restate context; do not rely on the REQ being open.
 - Flag in the agent's return summary under Knowledge Artefacts.
 -->
