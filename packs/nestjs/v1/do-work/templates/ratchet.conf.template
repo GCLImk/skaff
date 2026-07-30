@@ -1,0 +1,49 @@
+# Ratchet configuration for NestJS backend services.
+# Copy to ratchet.conf at the repo root to activate.
+#
+# Tuning rationale
+# ----------------
+# A backend service fails in three ways that a frontend pack's default weights do
+# not capture, so three dimensions carry 1.5 and together account for half the
+# composite:
+#
+#   structure     1.5  Module boundaries and DI hygiene are the property that
+#                      decides whether the service stays changeable. A provider
+#                      reached by a deep relative import, or a request-scoped
+#                      provider bubbling into a singleton, is not a style nit -
+#                      it is the defect that makes the next ten REQs expensive.
+#   test_coverage 1.5  Backend logic has no visual signal. An untested branch in
+#                      a service is invisible until it is an incident.
+#   security      1.5  The service owns the trust boundary. Unvalidated input, an
+#                      unguarded route, a concatenated query or a logged token is
+#                      a production incident, and must not be diluted by six
+#                      other dimensions averaging it away.
+#
+# dead_code stays at 0.5 and starts N/A - see na_dimensions below.
+
+parse_check_weight      = 1.0
+lint_weight             = 1.0
+complexity_weight       = 1.0
+structure_weight        = 1.5
+dead_code_weight        = 0.5
+test_coverage_weight    = 1.5
+doc_quality_weight      = 1.0
+security_weight         = 1.5
+
+external_validation_after_composite = 0.85
+
+threshold_parse_check   = 1.00
+threshold_doc_quality   = 0.85
+threshold_test_coverage = 0.70
+threshold_security      = 0.85
+
+# dead_code is N/A until the project wires a dead-export analyser (ts-prune or
+# knip) with an ignore rule for DI-registered providers. NestJS resolves
+# providers through decorator metadata rather than a direct import, so an
+# un-tuned scan reports every provider, guard, pipe and filter as unused. A
+# hand-scored dead_code dimension would be noise, and the ratchet protocol's
+# honest answer to a dimension with no measurement is null, not a guess.
+#
+# Remove dead_code from this list in the same REQ that adds the analyser. The
+# ratchet's Appearance rule records the initial value as neutral for that run.
+na_dimensions = dead_code

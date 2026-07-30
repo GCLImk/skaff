@@ -1,0 +1,51 @@
+# gitleaks config for the nestjs pack - project overrides for secret scanning.
+# Copy this file to the repo root as `.gitleaks.toml` to activate.
+#
+# gitleaks uses the default ruleset (150+ patterns) unless `useDefault = false`.
+# This template keeps the defaults and adds an allowlist for the paths where a
+# secret-shaped string is legitimate in a NestJS service: Jest fixtures, e2e
+# test harnesses, and the committed `.env.example`.
+
+title = "gitleaks config for nestjs pack"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Project-specific allowlist for test fixtures, e2e harnesses, and examples"
+
+# Paths where secrets-looking strings are acceptable.
+paths = [
+  '''(^|/)test/.*''',
+  '''(^|/)tests/.*''',
+  '''(^|/)__tests__/.*''',
+  '''(^|/)__mocks__/.*''',
+  '''(^|/)fixtures/.*''',
+  '''(^|/)factories/.*''',
+  '''(^|/)test-utils/.*''',
+  '''\.spec\.ts$''',
+  '''\.e2e-spec\.ts$''',
+  '''jest\.config\.(js|ts|mjs|cjs)$''',
+  '''jest-e2e\.json$''',
+  '''\.env\.example$''',
+  '''(^|/)docs/.*''',
+  '''README\.md$''',
+]
+
+# Deliberately NOT allowlisted, even though they are generated or vendored:
+#   dist/, coverage/, node_modules/  - a real secret compiled into dist/ or
+#   captured in a coverage report is still a leak, and .gitignore should be
+#   keeping all three out of the index in the first place.
+#   migrations/                      - a connection string pasted into a
+#   migration is one of the most common real leaks in a backend repo.
+
+# Inline content regexes to ignore. Add known-safe test tokens here.
+regexes = [
+  # '''postgres://test:test@localhost:5432/test_db''',   # local test DSN
+  # '''sk_test_[A-Za-z0-9]{24,}''',                      # Stripe test keys are not secrets
+]
+
+# Commit SHAs to skip entirely. Useful after a one-time approved commit.
+# commits = [
+#   "1a2b3c4d5e6f7g8h9i0j",
+# ]
