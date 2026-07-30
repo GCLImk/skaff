@@ -1,0 +1,154 @@
+# Ratchet Gate - GitHub Actions workflow template
+#
+# Copy this file to .github/workflows/ratchet-gate.yml at the repo root.
+# Runs on every pull_request and every push to main.
+#
+# Gates on parse_check (tsc + build), lint, format, test_coverage, security
+# (dependency advisories + secret scan), and the baseline composite floor. It
+# does NOT re-implement the full ratchet agent scoring - that is agent-owned.
+# This workflow blocks PRs on objective, deterministic regressions that can be
+# measured without LLM judgement.
+#
+# Human review stays required. This workflow does not enable auto-merge.
+#
+# Dependencies:
+#   - Node 22 (installed by actions/setup-node@v4)
+#   - yarn, activated through corepack (bundled with Node)
+#   - gitleaks (installed by gitleaks/gitleaks-action@v2)
+
+name: ratchet-gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  build-and-test:
+    name: Type check, lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history so baselines.jsonl is accessible
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      # --immutable fails the build on a drifted lockfile instead of rewriting it
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # parse_check (part 1) - TypeScript compile must succeed
+      - name: Type check
+        run: yarn tsc --noEmit
+
+      # lint floor - eslint must pass with zero warnings
+      - name: Lint
+        run: yarn lint
+
+      - name: Format check
+        run: yarn format:check
+
+      # test_coverage regression gate - tests pass and coverage produced
+      - name: Test
+        run: yarn test --coverage
+
+      # e2e specs cover the global pipes, guards and filters wired in main.ts
+      - name: End-to-end tests
+        run: yarn test:e2e
+
+      # parse_check (part 2) - production build must succeed
+      - name: Build
+        run: yarn build
+
+  dependency-audit:
+    name: Dependency advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # Part of the security dimension. Raise to --severity moderate once the
+      # existing advisory backlog is clear.
+      - name: Audit
+        run: yarn npm audit --severity high --all
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE only required for organizations, not personal accounts
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  ratchet-baseline:
+    name: Ratchet baseline regression
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Compare composite against the project floor
+        run: |
+          set -e
+          # This job is a sanity check, not a full re-score.
+          # The ratchet agent writes baselines.jsonl on merge; this job
+          # refuses the PR if the latest baseline's composite is below
+          # the project's composite floor.
+          baseline_file="do-work/ratchet/baselines.jsonl"
+          if [ ! -s "$baseline_file" ]; then
+            echo "No ratchet baselines yet. Skipping regression gate."
+            exit 0
+          fi
+          latest=$(tail -1 "$baseline_file")
+          composite=$(printf '%s' "$latest" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).composite")
+          # Project floor - edit per project expectations, default 0.75.
+          floor="${RATCHET_COMPOSITE_FLOOR:-0.75}"
+          if node -e "process.exit($composite >= $floor ? 0 : 1)"; then
+            echo "Latest baseline composite $composite >= floor $floor"
+          else
+            echo "::error::Latest baseline composite $composite is below floor $floor"
+            exit 1
+          fi

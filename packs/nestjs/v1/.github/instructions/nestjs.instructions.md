@@ -1,0 +1,19 @@
+---
+applyTo: "**/*.ts"
+---
+
+# NestJS Instructions
+
+- Register a provider in exactly one module and export it when another module consumes it. Never
+  import across a feature boundary by deep relative path.
+- Constructor injection only. Default singleton scope. No `forwardRef()` to paper over a cycle.
+- Controllers validate, delegate to one service method, and shape the response. Business logic
+  lives in providers. Never return a persistence entity from a controller.
+- Every structured input gets a DTO class with `class-validator` decorators on every field.
+- Read configuration through `ConfigService.get<T>()`. No `process.env` outside the config module.
+- Await or return every promise. Type every async return as `Promise<T>`. Never swallow an error.
+- Avoid `any` and never use `@ts-ignore`. Prefer `unknown` with narrowing.
+- Schema changes ship as a reviewed migration file, never `synchronize: true`.
+- Build tests with `Test.createTestingModule()`. Tests never reach the network.
+- Verify with `yarn tsc --noEmit`, `yarn lint`, `yarn test`, and `yarn build`.
+- Read `.claude/conventions/nestjs-style.md` for the full guide.

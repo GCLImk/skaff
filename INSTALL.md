@@ -19,6 +19,9 @@ A pack is a language or platform bundle. Each pack ships one or more versions.
 | `html-css` | v1 (maintained) | HTML5/CSS3/vanilla JS + Playwright |
 | `designer` | v1 (maintained) | Design systems + Storybook + CSS tokens |
 | `appscript` | v1 (maintained) | Google Apps Script V8 + clasp |
+| `sveltekit` | v1 (maintained) | SvelteKit 2+ + Svelte 5 + TypeScript 5+ + Vite |
+| `terraform` | v1 (maintained) | Terraform 1.7+ / OpenTofu-compatible HCL2 + tflint + checkov |
+| `nestjs` | v1 (maintained) | NestJS 10+ + TypeScript 5+ backend services on Node 20+/22+ with yarn |
 
 Legacy v1 packs such as `csharp@v1` and `appsheet@v1` carried an orchestrator-as-sub-agent topology that cannot spawn specialists via the Agent tool. Maintained packs use a `/do-work-run` slash command executed by the main session. See each pack's `PACK.md` for the upgrade path.
 

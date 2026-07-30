@@ -44,13 +44,35 @@ When editing a protocol-level convention in one pack:
 4. Commit each pack's change as a separate file edit in the same commit; commit message scope is `packs`.
 5. If a pack is deliberately diverging on a previously shared convention, note it in that pack's `PACK.md` under a "Divergence from shared" heading.
 
+## Outstanding drift to backport
+
+Stale references found while authoring `nestjs/v1` against `react/v1`. They were fixed in the new
+pack on the way in, but remain in the source pack and in whichever packs copied from it. Each is a
+one-line edit; none has been applied across the maintained packs yet.
+
+| File | Stale text | Should read |
+| --- | --- | --- |
+| `.claude/conventions/do-work-protocol.md` | `XML doc and markdown edits` in the Skill Action Boundaries table | the pack's own doc format (`TSDoc`, `godoc`, `docstring`) |
+| `.claude/conventions/external-validation.md` | axis 5: `do the XML docs and comments accurately describe...` | the pack's own doc format |
+| `.claude/conventions/ratchet-protocol.md` | `doc_quality` row wording, and `react/v1`'s focused kept-bar rationale `a bugfix that touches one hook` | the pack's own doc format; a stack-neutral unit for the kept-bar example |
+
+`XML doc` is a leftover from the csharp pack, the same class of defect fixed in `830ebac`, and it is
+still present in **27 convention files across 12 non-csharp pack versions** (appscript, appsheet v1
+and v2, designer, gcli, html-css, nextjs, python, react, sveltekit, vue3-vite). Only `csharp` should
+say it. Run these before assuming a pack is clean:
+
+```bash
+grep -rn "XML doc" packs/*/v*/.claude/conventions/   # expect csharp only
+grep -rn "one hook" packs/*/v*/.claude/conventions/  # expect zero
+```
+
 ## Shared base in `common/`
 
 The truly pack-agnostic files live in `common/` (not under `packs/`) and are installed before any pack overlay:
 
 - `common/.claude/conventions/commit-style.md` - Conventional Commits rules, language-agnostic.
 - `common/.claude/conventions/knowledge-protocol.md` - the two-lane ADR / proposed-convention knowledge trail (promoted from the nextjs pack, the only place it used to ship). Uses `<pack>` and "domain advisor or specialist agent" placeholders since it cannot name any one pack's agents; see the file's own "Placeholders in this file" section.
-- `common/do-work/templates/REQ-template.md` and `UR-template.md` - generic request shapes.
+- `common/do-work/templates/REQ-template.md` and `UR-template.md` - generic request shapes. `REQ-template.md` uses the same `<pack>-implement` placeholder convention as `knowledge-protocol.md`, and explains it inline; it previously hard-coded `csharp-implement` and so shipped a wrong agent name into every non-csharp target.
 - `common/do-work/templates/ADR-template.md` and `proposed-convention-template.md` - starter files for the two knowledge-protocol lanes (also promoted from the nextjs pack).
 - `common/do-work/` runtime dir skeletons (`.gitkeep` sentinels), including `do-work/proposed-conventions/.gitkeep`.
 - `common/GEMINI.md`, `common/AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/conventions.instructions.md`, `.cursorrules`, `.windsurfrules`, `.aider.conf.yml`, `.continue/rules/behavioral-guidelines.md` - shared multi-LLM files installed into every target.
