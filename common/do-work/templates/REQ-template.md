@@ -112,11 +112,15 @@ The orchestrator appends runtime fields (`claimed_at`, `route`, `completed_at`) 
 
 ## Sections added later
 
-Do not write these sections manually. They are appended by agents or skill actions during processing:
+Do not write these sections manually. They are appended by agents or skill actions during processing.
+`<pack>-implement` below is a placeholder for this project's implement agent (for example
+`react-implement`, `nestjs-implement`, `tf-implement`); this template ships once from `common/` and
+installs into every pack, so it cannot name one pack's roster. Check `.claude/agents/` or
+`.claude/.pack` for the actual name.
 
 - `## Verification` - by verify-request after the do action creates the REQ.
-- `## Plan` - by csharp-implement in plan-only mode.
-- `## Plan Hash` - by csharp-implement, SHA-256 of the plan body for drift detection.
+- `## Plan` - by `<pack>-implement` in plan-only mode.
+- `## Plan Hash` - by `<pack>-implement`, SHA-256 of the plan body for drift detection.
 - `## Plan Verification` - by verify-plan after `## Plan` is written.
 - `## Loop Counters` - by the orchestrator on first rework cycle.
 - `## Ratchet` - by the ratchet agent after scoring.
