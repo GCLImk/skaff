@@ -66,7 +66,7 @@ The installer copies two source trees in order:
    - `ratchet.conf.template`, `.gitleaks.toml.template`
    - Optional CI workflows (`ci/`)
 
-The pack overlay wins on any file collision with `common/`. The `CLAUDE.md.template` is special-cased: it installs to `<target>/CLAUDE.md` and is not preserved under `do-work/templates/` in the target.
+On a fresh target, `common/` is copied first and the pack overlay second, and both copies share one `-Force` flag - so without `-Force`, a file that exists in both wins by first-writer, meaning `common/` wins, not the pack. With `-Force`, both copies overwrite unconditionally, so the pack (copied second) wins. The one file that currently ships in both trees is `.claude/conventions/commit-style.md`, byte-identical across every pack, so this ordering has no visible effect today - but it will if a pack's copy of a shared file ever diverges. The `CLAUDE.md.template` is special-cased: it installs to `<target>/CLAUDE.md` and is not preserved under `do-work/templates/` in the target.
 
 ## Pack identity sentinel
 

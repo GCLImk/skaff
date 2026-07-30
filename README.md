@@ -96,7 +96,7 @@ Default pack is `csharp`. Pinning: `<pack>@<version>`. Full pack list and versio
 | `sveltekit` | v1 (maintained) | SvelteKit 2+ + Svelte 5 + TypeScript 5+ + Vite |
 | `terraform` | v1 (maintained) | Terraform 1.7+ / OpenTofu-compatible HCL2 + tflint + checkov |
 
-The installer is idempotent. Existing files are preserved unless `-Force` or `--force` is supplied. Only `common/` and `packs/<pack>/<version>/` are copied; repo-root files and other packs are out of scope by construction.
+The installer is idempotent. Existing files are preserved unless `-Force` or `--force` is supplied. Only `common/` and `packs/<pack>/<version>/` are copied; repo-root files and other packs are out of scope by construction. `common/` is copied first and the pack overlay second, sharing one `-Force` flag: without it, a file present in both wins by first-writer (`common/`), not the pack; with it, the pack (copied second) wins. See [INSTALL.md](./INSTALL.md#what-gets-installed) for detail.
 
 ### After install
 
