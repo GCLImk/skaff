@@ -13,7 +13,7 @@ All agents read this file before writing or editing markdown (`.md`) files.
 ## Code Fences
 
 - Always fence code blocks with triple backticks.
-- Always tag the language: ` ```python `, ` ```bash `, ` ```json `, ` ```text `.
+- Always tag the language: ` ```go `, ` ```bash `, ` ```json `, ` ```text `.
 - Close every fence. Unclosed fences break rendering.
 - Indented (four-space) code blocks are not permitted.
 

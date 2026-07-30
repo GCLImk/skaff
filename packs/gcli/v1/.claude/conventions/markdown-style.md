@@ -52,7 +52,7 @@ No custom admonition syntax, no HTML `<div>` blocks.
 
 - Inline links: `[text](url)`.
 - Reference-style links permitted for repeated URLs in long documents.
-- Relative links for intra-repo references: `[python style](./python-style.md)`.
+- Relative links for intra-repo references: `[gcli style](./gcli-style.md)`.
 
 ## Style
 

@@ -87,6 +87,6 @@ An external validator that always finds problems is broken. An external validato
 
 ## What Not To Do
 
-- Do not chain an external validation onto an external validation. The second reviewer is final. If it fails, the change loops back to `csharp-implement`, not to a third reviewer.
+- Do not chain an external validation onto an external validation. The second reviewer is final. If it fails, the change loops back to `react-implement`, not to a third reviewer.
 - Do not let the external reviewer see the scores. That defeats the purpose.
 - Do not treat `Verdict: Pass` as permission to skip the graduated kept bar. The bar still applies; external validation is an additional gate, not a replacement.
