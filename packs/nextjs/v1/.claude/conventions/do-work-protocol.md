@@ -225,6 +225,8 @@ The do-work skill owns certain edits. Agents must not duplicate or overwrite the
 | Verdict and review summary                             | reviewer agent         |
 | Appending `## Ratchet` section to REQ files            | ratchet agent          |
 | Appending scoresets to `do-work/ratchet/baselines.jsonl` | ratchet agent        |
+| Writing ADRs under `docs/decisions/`                   | nextjs-doc-writer agent (see knowledge-protocol.md) |
+| Writing or bumping proposals under `do-work/proposed-conventions/` | domain advisors (routing/sheets/auth/cloudrun; see knowledge-protocol.md) |
 
 **Rules:**
 

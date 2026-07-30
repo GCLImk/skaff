@@ -2,6 +2,14 @@
 
 How agents capture project-specific knowledge that does not belong in conventions yet. Read this before writing to `docs/decisions/` or `do-work/proposed-conventions/`.
 
+## Placeholders in this file
+
+This file ships once in `common/` and installs identically into every pack, so it cannot hard-code any single pack's agent names. Angle-bracket placeholders stand in for values that vary per installed pack, the same convention `packs/TEMPLATE-CHECKLIST.md` uses for `<lang>` when describing a new pack:
+
+- `<pack>-doc-writer` - this project's doc-writer agent (e.g. `react-doc-writer`, `tf-doc-writer`). Check `.claude/.pack` or `.claude/agents/` for the actual name.
+- `<pack>-implement` - this project's implement agent (e.g. `react-implement`, `tf-implement`).
+- "domain advisor or specialist agent" - any read-only, knowledge-contributing agent this project defines (for example a `*-specialist.md` agent, or a project-local long-lived domain agent). Not every pack ships one. Packs and projects without a dedicated advisor simply do not use Lane 2 until one is added; see `.claude/agents/` for this project's actual roster.
+
 ## Why two lanes exist
 
 Conventions in `.claude/conventions/` earn their authority by being curated and stable. If any agent could append, they would drift into a dumping ground that future agents trust without vetting.
@@ -10,8 +18,8 @@ So agent-authored knowledge has two protected lanes outside conventions:
 
 | Lane                              | Purpose                                                              | Owner                       | Lifecycle                                                       |
 | --------------------------------- | -------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------- |
-| `docs/decisions/` (ADRs)          | One-off decisions made in a REQ that future readers must understand   | `nextjs-doc-writer`         | Append-only. Superseded by a later ADR, never deleted.          |
-| `do-work/proposed-conventions/`   | Recurring patterns observed by advisors that may harden later         | Any domain advisor          | Mature entries promoted into a convention via a normal REQ.     |
+| `docs/decisions/` (ADRs)          | One-off decisions made in a REQ that future readers must understand   | `<pack>-doc-writer`         | Append-only. Superseded by a later ADR, never deleted.          |
+| `do-work/proposed-conventions/`   | Recurring patterns observed by advisors that may harden later         | Any domain advisor or specialist agent | Mature entries promoted into a convention via a normal REQ.     |
 
 Conventions stay authoritative. ADRs record decisions. Proposed-conventions records candidates.
 
@@ -21,9 +29,9 @@ Conventions stay authoritative. ADRs record decisions. Proposed-conventions reco
 
 A REQ produces an ADR when it makes a decision that:
 
-- Locks in a choice future readers will not understand from the code alone (e.g. "we picked googleapis over @googleapis/sheets because of the auth helper").
+- Locks in a choice future readers will not understand from the code alone (e.g. "we picked library X over library Y because of the auth helper").
 - Sets a tradeoff that future REQs need to respect (e.g. "we accepted no SSR for the admin tree because of session-token size").
-- Reverses or supersedes a previous decision (e.g. "we are migrating off Sheets for write paths").
+- Reverses or supersedes a previous decision (e.g. "we are migrating off the old data store for write paths").
 
 A REQ does NOT produce an ADR when it is a routine bug fix, a refactor inside an existing decision, or a docs-only change.
 
@@ -63,7 +71,7 @@ Required structure:
 
 ### Authoring rules
 
-- **Only `nextjs-doc-writer` writes ADRs.** Other agents can recommend an ADR in their summary; doc-writer drafts during the doc phase of `/do-work-run`.
+- **Only `<pack>-doc-writer` writes ADRs.** Other agents can recommend an ADR in their summary; doc-writer drafts during the doc phase of `/do-work-run`.
 - **Append-only.** Never edit an accepted ADR. To change a decision, write a new ADR with `Status: Accepted` and edit the old one's Status line to `Superseded by ADR-MMMM` (the only edit ever permitted on an existing ADR).
 - **Self-contained.** A reader two years later must be able to understand the decision without the originating REQ open. Restate context in the ADR body.
 - **No ADR for guideline changes.** If the decision is "we will always use X for Y from now on", that is a convention edit, not an ADR.
@@ -76,7 +84,7 @@ An ADR is the record of a decision, not a request to change conventions. If the 
 
 ### When to write a proposal
 
-A domain advisor (`nextjs-routing-specialist`, `sheets-specialist`, `auth-specialist`, `cloudrun-specialist`) writes a proposal when:
+A domain advisor or specialist agent (see `.claude/agents/` for this project's roster) writes a proposal when:
 
 - The same pattern appears in advice for **two or more REQs** within the same advisor's domain. Single-occurrence observations stay in the advice brief.
 - A doc-writer or implementer asks for one off the back of an ADR.
@@ -134,7 +142,7 @@ Promotion is a deliberate human (or curator-agent) act, not automatic. The flow:
 1. A proposal reaches Maturity 3.
 2. Orchestrator surfaces it in the loop summary (see "Flagging" below).
 3. The user (or a future curator agent) opens a REQ titled `convention: promote <pattern title>`.
-4. That REQ's `nextjs-implement` edits the target convention; `nextjs-doc-writer` deletes the proposal file in the same commit.
+4. That REQ's `<pack>-implement` edits the target convention; `<pack>-doc-writer` deletes the proposal file in the same commit.
 5. Resulting commit message: `docs(convention): promote <pattern title> from proposed to <filename>`.
 
 Mature proposals that the user rejects after review get edited to `Maturity: 0 - rejected, see REQ-NNN` and stay in place as a tombstone so the same pattern does not re-emerge silently.
@@ -155,6 +163,6 @@ The orchestrator's loop summary at `do-work/summaries/do-work-run-<date>.md` agg
 
 ## Path restrictions reminder
 
-- Only `nextjs-doc-writer` may write to `docs/decisions/**`.
-- Only the four domain advisors may write to `do-work/proposed-conventions/**`. Other agents must read-only.
-- Neither lane may modify `.claude/conventions/**` directly. Convention edits go through a normal REQ owned by `nextjs-implement`.
+- Only `<pack>-doc-writer` (this project's doc-writer agent) may write to `docs/decisions/**`.
+- Only this project's domain advisor / specialist agents (if any are defined) may write to `do-work/proposed-conventions/**`. Other agents must read-only.
+- Neither lane may modify `.claude/conventions/**` directly. Convention edits go through a normal REQ owned by `<pack>-implement`.

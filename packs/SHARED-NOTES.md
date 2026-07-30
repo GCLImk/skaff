@@ -49,10 +49,12 @@ When editing a protocol-level convention in one pack:
 The truly pack-agnostic files live in `common/` (not under `packs/`) and are installed before any pack overlay:
 
 - `common/.claude/conventions/commit-style.md` - Conventional Commits rules, language-agnostic.
+- `common/.claude/conventions/knowledge-protocol.md` - the two-lane ADR / proposed-convention knowledge trail (promoted from the nextjs pack, the only place it used to ship). Uses `<pack>` and "domain advisor or specialist agent" placeholders since it cannot name any one pack's agents; see the file's own "Placeholders in this file" section.
 - `common/do-work/templates/REQ-template.md` and `UR-template.md` - generic request shapes.
-- `common/do-work/` runtime dir skeletons (`.gitkeep` sentinels).
+- `common/do-work/templates/ADR-template.md` and `proposed-convention-template.md` - starter files for the two knowledge-protocol lanes (also promoted from the nextjs pack).
+- `common/do-work/` runtime dir skeletons (`.gitkeep` sentinels), including `do-work/proposed-conventions/.gitkeep`.
 - `common/GEMINI.md`, `common/AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/conventions.instructions.md`, `.cursorrules`, `.windsurfrules`, `.aider.conf.yml`, `.continue/rules/behavioral-guidelines.md` - shared multi-LLM files installed into every target.
 
 The common multi-LLM files are not pack-specific and do not need backporting. They live in `common/` and auto-install to every pack.
 
-If a pack ever needs to diverge on one of these, it can ship the file under its own version dir and the pack overlay will win (installer copies `common/` first, pack second). The override should be called out in `PACK.md`.
+If a pack ever needs to diverge on one of these, it can ship the file under its own version dir, but the override only takes effect with `-Force` / `--force`: the installer copies `common/` first and the pack second, sharing one force flag, so without it the file that lands first (`common/`'s copy) wins and the pack's copy is silently skipped. See [INSTALL.md](../INSTALL.md#what-gets-installed) for the full collision behaviour. The override should be called out in `PACK.md`.

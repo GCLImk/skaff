@@ -184,8 +184,8 @@ Skaff/
 │   ├── .github/, .continue/            shared multi-LLM instructions
 │   ├── .cursorrules, .windsurfrules
 │   ├── .aider.conf.yml
-│   ├── .claude/conventions/commit-style.md
-│   └── do-work/                        generic templates + runtime dir skeletons
+│   ├── .claude/conventions/commit-style.md, knowledge-protocol.md
+│   └── do-work/                        generic templates + runtime dir skeletons + proposed-conventions/
 └── packs/
     ├── README.md, SHARED-NOTES.md      pack contract, backport checklist
     ├── csharp/PACK.md + v1/, v2/       .NET 9+ pack, version manifest + overlay
@@ -390,7 +390,7 @@ If Rejected: return Blocking Dimensions list to orchestrator
 
 ## Conventions
 
-Seven convention files in `.claude/conventions/`. Agents read specific ones before acting (declared in each agent's directive #1). Conventions are the load-bearing part of the scaffold - edit these to adapt the scaffold to your stack or team style.
+Eight convention files in `.claude/conventions/`. Agents read specific ones before acting (declared in each agent's directive #1). Conventions are the load-bearing part of the scaffold - edit these to adapt the scaffold to your stack or team style.
 
 | File                     | Read before...                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------- |
@@ -401,6 +401,9 @@ Seven convention files in `.claude/conventions/`. Agents read specific ones befo
 | `coverage-protocol.md`   | Running or interpreting verify-request or verify-plan (coverage formula, bands) |
 | `external-validation.md` | Dispatching reviewer as an adversarial external validator at composite >= 0.85  |
 | `ratchet-protocol.md`    | Scoring, keeping, or reviewing the `## Ratchet` section in a REQ                |
+| `knowledge-protocol.md`  | Writing an ADR (`docs/decisions/`) or a proposed-convention entry (`do-work/proposed-conventions/`) |
+
+`commit-style.md` and `knowledge-protocol.md` ship from `common/` and install identically into every pack; the other six are pack-specific overlay files.
 
 ## The ratchet
 

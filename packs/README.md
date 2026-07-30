@@ -95,7 +95,9 @@ The target project's git history holds the diff. Review and commit. Abandoned mi
 
 ## Shared files
 
-A handful of files are expected to track across packs (commit style, generic markdown style). See [SHARED-NOTES.md](./SHARED-NOTES.md) for the backport checklist.
+A handful of files are expected to track across packs (generic markdown style, protocol-level conventions with agent names substituted). See [SHARED-NOTES.md](./SHARED-NOTES.md) for the backport checklist.
+
+Two conventions are not pack-owned at all: `commit-style.md` and `knowledge-protocol.md` ship once from `common/.claude/conventions/` and install identically into every pack. Do not add a pack-local copy of either - a pack-local file of the same name only wins the installer's collision with `-Force`, so an unforced override would silently do nothing (see [INSTALL.md](../INSTALL.md#what-gets-installed)). `knowledge-protocol.md` uses `<pack>` and "domain advisor or specialist agent" as placeholders (documented at the top of the file) since it cannot hard-code any one pack's agent names.
 
 ## Multi-LLM compatibility
 
